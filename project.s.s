@@ -2,12 +2,12 @@
 # IAC 2023/2024 k-means
 # 
 # Grupo:
-# Campus:
+# Campus: Alameda
 #
 # Autores:
+# 110355, Madalena Mota
 # n_aluno, nome
-# n_aluno, nome
-# n_aluno, nome
+# 109247, Ema Ferrão
 #
 # Tecnico/ULisboa
 
@@ -37,8 +37,8 @@ points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+#n_points:    .word 30
+#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -111,7 +111,30 @@ printPoint:
 
 cleanScreen:
     # POR IMPLEMENTAR (1a parte)
-    jr ra
+    li t0 0 # Coordenada x
+    li t2, LED_MATRIX_0_WIDTH
+    li t3, LED_MATRIX_0_HEIGHT
+    j itera_x
+    
+itera_x:
+    li t1 0 # Coordenada y
+    
+itera_y:
+    mv a0 t0
+    mv a1 t1
+    li a2 white
+    addi sp sp -4
+    sw ra 0(sp)
+    jal printPoint 
+    addi t1 t1 1
+    blt t1 t3 itera_y
+    
+    addi t0 t0 1
+    blt t0 t2 itera_x
+    
+    lw ra 0(sp)
+    addi sp sp 4
+    jr ra  
 
     
 ### printClusters
@@ -155,7 +178,7 @@ mainSingleCluster:
     #1. Coloca k=1 (caso nao esteja a 1)
     # POR IMPLEMENTAR (1a parte)
 
-    #2. cleanScreen
+    jal cleanScreen
     # POR IMPLEMENTAR (1a parte)
 
     #3. printClusters
@@ -205,3 +228,4 @@ nearestCluster:
 mainKMeans:  
     # POR IMPLEMENTAR (2a parte)
     jr ra
+
