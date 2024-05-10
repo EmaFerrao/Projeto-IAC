@@ -7,7 +7,7 @@
 # Autores:
 # 110355, Madalena Mota
 # n_aluno, nome
-# 109247, Ema Ferrão
+# 109247, Ema Ferr?o
 #
 # Tecnico/ULisboa
 
@@ -23,6 +23,9 @@
 
 # Variaveis em memoria
 .data
+
+.equ         LED_MATRIX_0_HEIGHT 32
+.equ         LED_MATRIX_0_WIDTH 32
 
 #Input A - linha inclinada
 n_points:    .word 9
@@ -65,6 +68,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 .equ         black      0
 .equ         white      0xffffff
 .equ         green      0x00ff00
+.equ         red        0xff0000
 
 
 
@@ -106,7 +110,7 @@ printPoint:
     
 
 ### cleanScreen
-# Limpa todos os pontos do ecrã
+# Limpa todos os pontos do ecr?
 # Argumentos: nenhum
 # Retorno: nenhum
 
@@ -121,20 +125,20 @@ itera_x:
     li t1 0 # Coordenada y
     
 itera_y:
-    mv a0 t0
-    mv a1 t1
-    li a2 white
-    addi sp sp -4
-    sw ra 0(sp)
+    mv a0, t0
+    mv a1, t1
+    li a2, white
+    addi sp, sp, -4
+    sw ra, 0(sp)
     jal printPoint 
-    addi t1 t1 1
-    blt t1 t3 itera_y
+    addi t1, t1, 1
+    blt t1, t3, itera_y
     
-    addi t0 t0 1
-    blt t0 t2 itera_x
+    addi t0, t0, 1
+    blt t0, t2, itera_x
     
-    lw ra 0(sp)
-    addi sp sp 4
+    lw ra, 0(sp)
+    addi sp, sp, 4
     jr ra  
 
     
@@ -144,7 +148,28 @@ itera_y:
 # Retorno: nenhum
 
 printClusters:
-    # POR IMPLEMENTAR (1a e 2a parte)
+    li t0, 0 # Coordenada x
+    li t2, LED_MATRIX_0_WIDTH
+    li t3, LED_MATRIX_0_HEIGHT
+    la t4, points
+    lw t5, n_points
+    j itera
+
+itera:
+    li a2, red
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    lw t0, 0(t4)
+    lw t1, 4(t4)
+    addi t4, t4, 8
+    mv a0, t0
+    mv a1, t1
+    jal printPoint 
+    addi t5, t5, -1
+    bgt t5, x0, itera
+    
+    lw ra, 0(sp)
+    addi sp, sp, 4
     jr ra
 
 
@@ -194,10 +219,9 @@ mainSingleCluster:
     lw s2, k
     # POR IMPLEMENTAR (1a parte)
 
-    # jal cleanScreen
+    jal cleanScreen
 
-    #3. printClusters
-    # POR IMPLEMENTAR (1a parte)
+    jal printClusters
 
     #4. calculateCentroids
     # POR IMPLEMENTAR (1a parte)
