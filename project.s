@@ -7,11 +7,7 @@
 # Autores:
 # 110355, Madalena Mota
 # n_aluno, nome
-<<<<<<< HEAD
 # 109247, Ema Ferrão
-=======
-# 109247, Ema FerrÃ£o
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 #
 # Tecnico/ULisboa
 
@@ -28,13 +24,6 @@
 # Variaveis em memoria
 .data
 
-<<<<<<< HEAD
-=======
-# DimensÃµes
-.equ LED_MATRIX_HEIGHT 32
-.equ LED_MATRIX_WIDTH 32
-
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 #Input A - linha inclinada
 n_points:    .word 9
 points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
@@ -75,6 +64,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 .equ         black      0
 .equ         white      0xffffff
+.equ         green      0x00ff00
 
 
 
@@ -102,17 +92,10 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # a2: cor
 
 printPoint:
-<<<<<<< HEAD
     li a3, LED_MATRIX_0_HEIGHT
     sub a1, a3, a1
     addi a1, a1, -1
     li a3, LED_MATRIX_0_WIDTH
-=======
-    li a3, LED_MATRIX_HEIGHT
-    sub a1, a3, a1
-    addi a1, a1, -1
-    li a3, LED_MATRIX_WIDTH
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
     mul a3, a3, a1
     add a3, a3, a0
     slli a3, a3, 2
@@ -123,25 +106,15 @@ printPoint:
     
 
 ### cleanScreen
-<<<<<<< HEAD
 # Limpa todos os pontos do ecrã
-=======
-# Limpa todos os pontos do ecrÃ£
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 # Argumentos: nenhum
 # Retorno: nenhum
 
 cleanScreen:
-<<<<<<< HEAD
     # POR IMPLEMENTAR (1a parte)
-    li t0 0 # Coordenada x
+    li t0, 0 # Coordenada x
     li t2, LED_MATRIX_0_WIDTH
     li t3, LED_MATRIX_0_HEIGHT
-=======
-    li t0 0 # Coordenada x
-    li t2, LED_MATRIX_WIDTH
-    li t3, LED_MATRIX_HEIGHT
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
     j itera_x
     
 itera_x:
@@ -182,23 +155,26 @@ printClusters:
 # Retorno: nenhum
 
 printCentroids:
-<<<<<<< HEAD
-    li t0 0 # iterador para a posicao do array
-    jr ra
+    li t0, 0 # Contar numero de iteracoes
+    la t1, centroids # Endereco do vetor de centroides
     
-executaPrintCentroids: li t1 0
-    
-
-### calculateCentroids
-# Calcula os k centroides, a partir da  li t1 0distribuicao atual de pontos associados a cada agrupamento (cluster)
-=======
-    # POR IMPLEMENTAR (1a e 2a parte)
+executaPrintCentroids:
+    lw a0, 0(t1)
+    lw a1, 4(t1)
+    li a2, green
+    addi t1, t1, 8
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    jal printPoint
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    addi t0, t0, 1
+    blt t0, s2, executaPrintCentroids
     jr ra
     
 
 ### calculateCentroids
 # Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 # Argumentos: nenhum
 # Retorno: nenhum
 
@@ -215,13 +191,10 @@ calculateCentroids:
 mainSingleCluster:
 
     #1. Coloca k=1 (caso nao esteja a 1)
+    lw s2, k
     # POR IMPLEMENTAR (1a parte)
 
-    jal cleanScreen
-<<<<<<< HEAD
-=======
-    # POR IMPLEMENTAR (1a parte)
->>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
+    # jal cleanScreen
 
     #3. printClusters
     # POR IMPLEMENTAR (1a parte)
@@ -229,8 +202,7 @@ mainSingleCluster:
     #4. calculateCentroids
     # POR IMPLEMENTAR (1a parte)
 
-    #5. printCentroids
-    # POR IMPLEMENTAR (1a parte)
+    jal printCentroids
 
     #6. Termina
     jr ra
