@@ -7,7 +7,11 @@
 # Autores:
 # 110355, Madalena Mota
 # n_aluno, nome
+<<<<<<< HEAD
 # 109247, Ema Ferrão
+=======
+# 109247, Ema FerrÃ£o
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 #
 # Tecnico/ULisboa
 
@@ -24,6 +28,13 @@
 # Variaveis em memoria
 .data
 
+<<<<<<< HEAD
+=======
+# DimensÃµes
+.equ LED_MATRIX_HEIGHT 32
+.equ LED_MATRIX_WIDTH 32
+
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 #Input A - linha inclinada
 n_points:    .word 9
 points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
@@ -91,10 +102,17 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # a2: cor
 
 printPoint:
+<<<<<<< HEAD
     li a3, LED_MATRIX_0_HEIGHT
     sub a1, a3, a1
     addi a1, a1, -1
     li a3, LED_MATRIX_0_WIDTH
+=======
+    li a3, LED_MATRIX_HEIGHT
+    sub a1, a3, a1
+    addi a1, a1, -1
+    li a3, LED_MATRIX_WIDTH
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
     mul a3, a3, a1
     add a3, a3, a0
     slli a3, a3, 2
@@ -105,15 +123,25 @@ printPoint:
     
 
 ### cleanScreen
+<<<<<<< HEAD
 # Limpa todos os pontos do ecrã
+=======
+# Limpa todos os pontos do ecrÃ£
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 # Argumentos: nenhum
 # Retorno: nenhum
 
 cleanScreen:
+<<<<<<< HEAD
     # POR IMPLEMENTAR (1a parte)
     li t0 0 # Coordenada x
     li t2, LED_MATRIX_0_WIDTH
     li t3, LED_MATRIX_0_HEIGHT
+=======
+    li t0 0 # Coordenada x
+    li t2, LED_MATRIX_WIDTH
+    li t3, LED_MATRIX_HEIGHT
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
     j itera_x
     
 itera_x:
@@ -154,6 +182,7 @@ printClusters:
 # Retorno: nenhum
 
 printCentroids:
+<<<<<<< HEAD
     li t0 0 # iterador para a posicao do array
     jr ra
     
@@ -162,6 +191,14 @@ executaPrintCentroids: li t1 0
 
 ### calculateCentroids
 # Calcula os k centroides, a partir da  li t1 0distribuicao atual de pontos associados a cada agrupamento (cluster)
+=======
+    # POR IMPLEMENTAR (1a e 2a parte)
+    jr ra
+    
+
+### calculateCentroids
+# Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 # Argumentos: nenhum
 # Retorno: nenhum
 
@@ -181,6 +218,10 @@ mainSingleCluster:
     # POR IMPLEMENTAR (1a parte)
 
     jal cleanScreen
+<<<<<<< HEAD
+=======
+    # POR IMPLEMENTAR (1a parte)
+>>>>>>> 0967940ff0efadd65f28a326c8f985dd31d6ccae
 
     #3. printClusters
     # POR IMPLEMENTAR (1a parte)
