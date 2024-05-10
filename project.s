@@ -24,8 +24,8 @@
 # Variaveis em memoria
 .data
 
-.equ         LED_MATRIX_0_HEIGHT 32
-.equ         LED_MATRIX_0_WIDTH 32
+.equ         LED_MATRIX_HEIGHT 32
+.equ         LED_MATRIX_WIDTH 32
 
 #Input A - linha inclinada
 #n_points:    .word 9
@@ -68,7 +68,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 .equ         black      0
 .equ         white      0xffffff
 .equ         green      0x00ff00
-.equ         red        0xff0000
+.equ         red        0x0000ff
 
 
 
@@ -96,10 +96,10 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # a2: cor
 
 printPoint:
-    li a3, LED_MATRIX_0_HEIGHT
+    li a3, LED_MATRIX_HEIGHT
     sub a1, a3, a1
     addi a1, a1, -1
-    li a3, LED_MATRIX_0_WIDTH
+    li a3, LED_MATRIX_WIDTH
     mul a3, a3, a1
     add a3, a3, a0
     slli a3, a3, 2
@@ -117,8 +117,8 @@ printPoint:
 cleanScreen:
     # POR IMPLEMENTAR (1a parte)
     li t0, 0 # Coordenada x
-    li t2, LED_MATRIX_0_WIDTH
-    li t3, LED_MATRIX_0_HEIGHT
+    li t2, LED_MATRIX_WIDTH
+    li t3, LED_MATRIX_HEIGHT
     j itera_x
     
 itera_x:
@@ -149,14 +149,14 @@ itera_y:
 
 printClusters:
     li t0, 0 # Coordenada x
-    li t2, LED_MATRIX_0_WIDTH
-    li t3, LED_MATRIX_0_HEIGHT
+    li t2, LED_MATRIX_WIDTH
+    li t3, LED_MATRIX_HEIGHT
     la t4, points
     lw t5, n_points
+    lw a2, red
     j itera
 
 itera:
-    li a2, red
     addi sp, sp, -4
     sw ra, 0(sp)
     lw t0, 0(t4)
