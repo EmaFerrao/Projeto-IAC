@@ -7,7 +7,11 @@
 # Autores:
 # 110355, Madalena Mota
 # n_aluno, nome
+<<<<<<< HEAD
 # 109247, Ema Ferr?o
+=======
+# 109247, Ema Ferr�o
+>>>>>>> 2b861cbb6ebdecc5a040ad79be20b57266d28cf1
 #
 # Tecnico/ULisboa
 
@@ -24,8 +28,8 @@
 # Variaveis em memoria
 .data
 
-.equ         LED_MATRIX_0_HEIGHT 32
-.equ         LED_MATRIX_0_WIDTH 32
+.equ LED_MATRIX_WIDTH 32
+.equ LED_MATRIX_HEIGHT 32
 
 #Input A - linha inclinada
 n_points:    .word 9
@@ -96,10 +100,10 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # a2: cor
 
 printPoint:
-    li a3, LED_MATRIX_0_HEIGHT
+    li a3, LED_MATRIX_HEIGHT
     sub a1, a3, a1
     addi a1, a1, -1
-    li a3, LED_MATRIX_0_WIDTH
+    li a3, LED_MATRIX_WIDTH
     mul a3, a3, a1
     add a3, a3, a0
     slli a3, a3, 2
@@ -117,8 +121,8 @@ printPoint:
 cleanScreen:
     # POR IMPLEMENTAR (1a parte)
     li t0, 0 # Coordenada x
-    li t2, LED_MATRIX_0_WIDTH
-    li t3, LED_MATRIX_0_HEIGHT
+    li t2, LED_MATRIX_WIDTH
+    li t3, LED_MATRIX_HEIGHT
     j itera_x
     
 itera_x:
