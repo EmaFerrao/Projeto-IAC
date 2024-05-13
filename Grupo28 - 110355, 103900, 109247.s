@@ -257,33 +257,7 @@ mainSingleCluster:
 # a0: distance
 
 manhattanDistance:
-    #Load
-    add t0, x0, a0  
-    add t1, x0, a1 
-    add t2, x0, a2  
-    add t3, x0, a3 
-    
-    #x0-y0
-    #x1-y1
-    sub t4, t0, t1 
-    sub t5, t2, t3
-    
-    #valores absoluto
-    li t1, -1
-    add t0, x0, t4
-    srli t0, t0, 31
-    mul t0, t0, t1
-    mul t4, t0, t4
-    
-    add t0, x0, t5
-    srli t0, t0, 31
-    mul t0, t0, t1
-    mul t5, t0, t5
-    
-    #d = |x0-y0| + |x1-y1|
-    add t0, t4, t5
-    add a0, x0, t0
-    
+    # POR IMPLEMENTAR (2a parte)
     jr ra
 
 
@@ -295,43 +269,9 @@ manhattanDistance:
 # a0: cluster index
 
 nearestCluster:
-    la t0, centroids # Endereco do vetor de centroides
-    li t1, 0 # Contador de iteracoes
-    
-    # Inicializar a width + height
-    li t2, LED_MATRIX_WIDTH
-    li t3, LED_MATRIX_HEIGHT
-    add t2, t2, t3  # Guarda a maior distancia possivel
-    
-    # Inicializar o indice da menor distancia
-    li t3, 0
-    
-    addi sp, sp, -4 # Guardar ra no stack
-    sw ra, 0(sp)
-    
-calculaManhattanDistance:
-    lw a2, 0(t0) # Colocar os valores nos resgistos necessarios
-    lw a3, 4(t0) # para calcular a manhattan distance
-    addi t0, t0, 8 # Passa para o proximo centroide
-    jal manhattanDistance # Calcular manhattan distance
-    
-    ### Calcular menor distancia ###
-    blt a0, t2, updateMenorDistancia
-        
-terminaNearestCluster:
-    addi t1, t1, 1 # Incrementa iterador
-    blt t1, s2, calculaManhattanDistance
-    mv a0, t3
-    lw ra, 0(sp)
-    addi sp, sp, 4
+    # POR IMPLEMENTAR (2a parte)
     jr ra
-    
-updateMenorDistancia:
-    # Alterar menor distancia
-    mv t2, a0
-    # Alterar indice do cluster
-    mv t3, t1
-    j terminaNearestCluster
+
 
 ### mainKMeans
 # Executa o algoritmo *k-means*.
