@@ -152,7 +152,7 @@ printClusters:
     li t3, LED_MATRIX_HEIGHT
     la t4, points
     lw t5, n_points
-    lw a2, green
+    li a2, black
     addi sp, sp, -4
     sw ra, 0(sp)
 
