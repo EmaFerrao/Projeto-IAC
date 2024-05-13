@@ -32,16 +32,16 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-n_points:    .word 5
-points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+#n_points:    .word 5
+#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-#n_points:    .word 30
-#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+n_points:    .word 30
+points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -68,7 +68,6 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 .equ         black      0
 .equ         white      0xffffff
 .equ         green      0x00ff00
-.equ         red        0x0000ff
 
 
 
@@ -110,7 +109,7 @@ printPoint:
     
 
 ### cleanScreen
-# Limpa todos os pontos do ecr?
+# Limpa todos os pontos do ecra
 # Argumentos: nenhum
 # Retorno: nenhum
 
@@ -153,12 +152,11 @@ printClusters:
     li t3, LED_MATRIX_HEIGHT
     la t4, points
     lw t5, n_points
-    lw a2, red
-    j itera
-
-itera:
+    lw a2, green
     addi sp, sp, -4
     sw ra, 0(sp)
+
+itera:
     lw t0, 0(t4)
     lw t1, 4(t4)
     addi t4, t4, 8
@@ -204,9 +202,28 @@ executaPrintCentroids:
 # Retorno: nenhum
 
 calculateCentroids:
-    # POR IMPLEMENTAR (1a e 2a parte)
-    jr ra
+    li t0, 0 # Contar numero de iteracoes
+    li t5, 0 # Soma das coordenadas x
+    li t6, 0 # Soma das coordenadas y
+    lw t1, n_points # Numero de pontos
+    la t2, points # Endereço do vetor de pontos
+    la s3, centroids # Endereço do vetor de centroides
 
+somaCoordenadas:
+    lw t3, 0(t2)
+    lw t4, 4(t2)
+    add t5, t5, t3
+    add t6, t6, t4
+    addi t2, t2, 8
+    addi t0, t0, 1
+    blt t0, t1, somaCoordenadas
+
+calculaMedia:
+    div t5, t5, t1
+    div t6, t6, t1
+    sw t5, 0(s3)
+    sw t6, 4(s3)
+    jr ra
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -217,14 +234,12 @@ mainSingleCluster:
 
     #1. Coloca k=1 (caso nao esteja a 1)
     lw s2, k
-    # POR IMPLEMENTAR (1a parte)
 
     jal cleanScreen
 
     jal printClusters
 
-    #4. calculateCentroids
-    # POR IMPLEMENTAR (1a parte)
+    jal calculateCentroids
 
     jal printCentroids
 
