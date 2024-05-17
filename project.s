@@ -46,17 +46,17 @@ points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6
 
 
 # Valores de centroids e k a usar na 1a parte do projeto:
-centroids:   .word 0,0
-k:           .word 1
+#centroids:   .word 0,0
+#k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-#centroids:   .word 0,0, 10,0, 0,10
-#k:           .word 3
-#L:           .word 10
+centroids:   .word 0,0, 10,0, 0,10
+k:           .word 3
+L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-#clusters:    
+clusters:    .zero 50   
 
 
 
@@ -368,5 +368,46 @@ updateMenorDistancia:
 # Retorno: nenhum
 
 mainKMeans:  
-    # POR IMPLEMENTAR (2a parte)
+    lw t0, L
+    li t1, 0
+    li t2, 0
+    la t3, points 
+    la t4, clusters
+    la t5, colors
+    lw t6, n_points
+    jal cleanScreen
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+mainKMeansIteration:
+    jal cleanScreen
+    
+agruparPontos:
+    lw a0, t3 # Coordenada x
+    addi t3, t3, 4
+    lw a1, t3 # Coordenada y
+    addi t3, t3, 4
+    mv s3, a0 # Guardar coordenada x
+    jal nearestCluster
+    sw a0, 0(t4)
+    addi t4, t4, 4 
+    slli a0, a0, 2
+    add a2, a0, t5 
+    lw a2, 0(a2) # Cor do ponto
+    mv a0, s3 # Recuperar coordenada x
+    jal printPoints
+    addi t2, t2, 1
+    blt t2, t6, agruparPontos
+    
+    addi t1, t1, 1
+    blt t1, t0, mainKMeansIteration
+    addi sp, sp, 4 
+    lw ra, 0(sp)
     jr ra
+    
+    # 1. Escolher k pontos random para ser centroides (feito)
+    # 2. Para cada ponto, ver qual centroide esta mais perto e agrupar o ponto nesse cluster
+    # 3. Calcular a media dos pontos de cada cluster e usar o ponto resultante como novo 
+    # centroide
+    # 4. Repetir o algoritmo ate nenhum ponto mudar de cluster
+    
