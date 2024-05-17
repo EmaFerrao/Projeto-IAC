@@ -71,14 +71,6 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 
 
-# Strings a imprimir no fim de cada passo
-limpa_matriz:     .string "Limpa matriz\n"
-print_cluster:    .string "Print cluster\n"
-calcula_centroid: .string "Calcula centroide\n"
-separador:        .string ", "
-nova_linha:       .string "\n"
-
-
 # Codigo
  
 .text
@@ -122,19 +114,21 @@ printPoint:
 # Retorno: nenhum
 
 cleanScreen:
-    li t0, 0 # coordenada x
+    # POR IMPLEMENTAR (1a parte)
+    li t0, 0 # Coordenada x
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
-    addi sp, sp, -4
-    sw ra, 0(sp)
+    j itera_x
     
 itera_x:
-    li t1 0 # coordenada y
+    li t1 0 # Coordenada y
     
 itera_y:
     mv a0, t0
     mv a1, t1
-    li a2, white # cor de fundo
+    li a2, white
+    addi sp, sp, -4
+    sw ra, 0(sp)
     jal printPoint 
     addi t1, t1, 1
     blt t1, t3, itera_y
@@ -144,10 +138,6 @@ itera_y:
     
     lw ra, 0(sp)
     addi sp, sp, 4
-    
-    la a0, limpa_matriz
-    li a7, 4
-    ecall
     jr ra  
 
     
@@ -157,11 +147,12 @@ itera_y:
 # Retorno: nenhum
 
 printClusters:
+    li t0, 0 # Coordenada x
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
     la t4, points
     lw t5, n_points
-    lw a2, green 
+    li a2, black
     addi sp, sp, -4
     sw ra, 0(sp)
 
@@ -177,10 +168,6 @@ itera:
     
     lw ra, 0(sp)
     addi sp, sp, 4
-    
-    la a0, print_cluster
-    li a7, 4
-    ecall
     jr ra
 
 
@@ -191,8 +178,8 @@ itera:
 # Retorno: nenhum
 
 printCentroids:
-    lw t0, k # contar numero de iteracoes
-    la t1, centroids # endereco do vetor de centroides
+    li t0, 0 # Contar numero de iteracoes
+    la t1, centroids # Endereco do vetor de centroides
     
 executaPrintCentroids:
     lw a0, 0(t1)
@@ -204,8 +191,8 @@ executaPrintCentroids:
     jal printPoint
     lw ra, 0(sp)
     addi sp, sp, 4
-    addi t0, t0, -1
-    bgt t0, x0, executaPrintCentroids
+    addi t0, t0, 1
+    blt t0, s2, executaPrintCentroids
     jr ra
     
 
@@ -215,12 +202,12 @@ executaPrintCentroids:
 # Retorno: nenhum
 
 calculateCentroids:
-    li t0, 0 # contador de iteracoes
-    li t5, 0 # soma das coordenadas x
-    li t6, 0 # soma das coordenadas y
-    lw t1, n_points 
-    la t2, points # endereco do vetor de pontos
-    la s3, centroids # endereco do vetor de centroides
+    li t0, 0 # Contar numero de iteracoes
+    li t5, 0 # Soma das coordenadas x
+    li t6, 0 # Soma das coordenadas y
+    lw t1, n_points # Numero de pontos
+    la t2, points # Endereço do vetor de pontos
+    la s3, centroids # Endereço do vetor de centroides
 
 somaCoordenadas:
     lw t3, 0(t2)
@@ -236,22 +223,6 @@ calculaMedia:
     div t6, t6, t1
     sw t5, 0(s3)
     sw t6, 4(s3)
-    
-    la a0, calcula_centroid
-    li a7, 4
-    ecall
-    mv a0, t5
-    li a7, 1
-    ecall
-    la a0, separador
-    li a7, 4
-    ecall
-    mv a0, t6
-    li a7, 1
-    ecall
-    la a0, nova_linha
-    li a7, 4
-    ecall
     jr ra
 
 ### mainSingleCluster
