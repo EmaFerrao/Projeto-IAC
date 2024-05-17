@@ -71,6 +71,14 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 
 
+# Strings a imprimir no fim de cada passo
+limpa_matriz:     .string "Limpa matriz\n"
+print_cluster:    .string "Print cluster\n"
+calcula_centroid: .string "Calcula centroide\n"
+separador:        .string ",, "
+nova_linha:       .string "\n"
+
+
 # Codigo
  
 .text
@@ -206,8 +214,8 @@ calculateCentroids:
     li t5, 0 # Soma das coordenadas x
     li t6, 0 # Soma das coordenadas y
     lw t1, n_points # Numero de pontos
-    la t2, points # Endereço do vetor de pontos
-    la s3, centroids # Endereço do vetor de centroides
+    la t2, points # Endereco do vetor de pontos
+    la s3, centroids # Endereco do vetor de centroides
 
 somaCoordenadas:
     lw t3, 0(t2)
