@@ -75,7 +75,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 limpa_matriz:     .string "Limpa matriz\n"
 print_cluster:    .string "Print cluster\n"
 calcula_centroid: .string "Calcula centroide\n"
-separador:        .string ", "
+separador:        .string ",, "
 nova_linha:       .string "\n"
 
 
