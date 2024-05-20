@@ -375,39 +375,47 @@ mainKMeans:
     la t4, clusters
     la t5, colors
     lw t6, n_points
+    li s0, 1
     jal cleanScreen
     addi sp, sp, -4
     sw ra, 0(sp)
     
 mainKMeansIteration:
+    beq s0, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
+    li s0, 0
     jal cleanScreen
     
 agruparPontos:
-    lw a0, t3 # Coordenada x
-    addi t3, t3, 4
-    lw a1, t3 # Coordenada y
-    addi t3, t3, 4
+    lw a0, 0(t3) # Coordenada x
+    lw a1, 4(t3) # Coordenada y
+    addi t3, t3, 8
     mv s3, a0 # Guardar coordenada x
     jal nearestCluster
+    lw s1, 0(t4)
+    beq a0, s1, terminaAgruparPontos # Se nao mudamos o ponto de cluster
+    li s0, 1 # Se mudamos, meter 1 no s0
+
+terminaAgruparPontos:
     sw a0, 0(t4)
     addi t4, t4, 4 
     slli a0, a0, 2
     add a2, a0, t5 
     lw a2, 0(a2) # Cor do ponto
     mv a0, s3 # Recuperar coordenada x
-    jal printPoints
+    jal printPoint
     addi t2, t2, 1
     blt t2, t6, agruparPontos
-    
+    jal calculateCentroids # Calcular novo vetor de centroides
     addi t1, t1, 1
     blt t1, t0, mainKMeansIteration
+    
+terminaMainKMeans:
     addi sp, sp, 4 
     lw ra, 0(sp)
     jr ra
     
     # 1. Escolher k pontos random para ser centroides (feito)
     # 2. Para cada ponto, ver qual centroide esta mais perto e agrupar o ponto nesse cluster
-    # 3. Calcular a media dos pontos de cada cluster e usar o ponto resultante como novo 
-    # centroide
+    # 3. Calcular novos centroides de acordo com os clusters obtidos
     # 4. Repetir o algoritmo ate nenhum ponto mudar de cluster
     

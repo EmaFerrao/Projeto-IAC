@@ -36,12 +36,12 @@
 #points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
-#n_points:    .word 23
-#points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
+n_points:    .word 23
+points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+#n_points:    .word 30
+#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -56,7 +56,7 @@ k:           .word 1
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-#clusters:    
+#clusters:    .zero 50   
 
 
 
@@ -69,6 +69,14 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 .equ         white      0xffffff
 .equ         green      0x00ff00
 
+
+
+# Strings a imprimir no fim de cada passo
+limpa_matriz:     .string "Limpa matriz\n"
+print_cluster:    .string "Print cluster\n"
+calcula_centroid: .string "Coordenadas do centroide:\n"
+separador:        .string ", "
+nova_linha:       .string "\n"
 
 
 # Codigo
@@ -114,21 +122,19 @@ printPoint:
 # Retorno: nenhum
 
 cleanScreen:
-    # POR IMPLEMENTAR (1a parte)
-    li t0, 0 # Coordenada x
+    li t0, 0 # coordenada x
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
-    j itera_x
+    addi sp, sp, -4
+    sw ra, 0(sp)
     
 itera_x:
-    li t1 0 # Coordenada y
+    li t1 0 # coordenada y
     
 itera_y:
     mv a0, t0
     mv a1, t1
-    li a2, white
-    addi sp, sp, -4
-    sw ra, 0(sp)
+    li a2, white # cor de fundo
     jal printPoint 
     addi t1, t1, 1
     blt t1, t3, itera_y
@@ -138,6 +144,11 @@ itera_y:
     
     lw ra, 0(sp)
     addi sp, sp, 4
+    
+    # print
+    la a0, limpa_matriz
+    li a7, 4
+    ecall
     jr ra  
 
     
@@ -147,12 +158,11 @@ itera_y:
 # Retorno: nenhum
 
 printClusters:
-    li t0, 0 # Coordenada x
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
     la t4, points
     lw t5, n_points
-    li a2, black
+    lw a2, green 
     addi sp, sp, -4
     sw ra, 0(sp)
 
@@ -168,6 +178,11 @@ itera:
     
     lw ra, 0(sp)
     addi sp, sp, 4
+    
+    # print
+    la a0, print_cluster
+    li a7, 4
+    ecall
     jr ra
 
 
@@ -178,8 +193,8 @@ itera:
 # Retorno: nenhum
 
 printCentroids:
-    li t0, 0 # Contar numero de iteracoes
-    la t1, centroids # Endereco do vetor de centroides
+    lw t0, k # contar numero de iteracoes
+    la t1, centroids # endereco do vetor de centroides
     
 executaPrintCentroids:
     lw a0, 0(t1)
@@ -191,8 +206,8 @@ executaPrintCentroids:
     jal printPoint
     lw ra, 0(sp)
     addi sp, sp, 4
-    addi t0, t0, 1
-    blt t0, s2, executaPrintCentroids
+    addi t0, t0, -1
+    bgt t0, x0, executaPrintCentroids
     jr ra
     
 
@@ -202,12 +217,12 @@ executaPrintCentroids:
 # Retorno: nenhum
 
 calculateCentroids:
-    li t0, 0 # Contar numero de iteracoes
-    li t5, 0 # Soma das coordenadas x
-    li t6, 0 # Soma das coordenadas y
-    lw t1, n_points # Numero de pontos
-    la t2, points # Endereço do vetor de pontos
-    la s3, centroids # Endereço do vetor de centroides
+    li t0, 0 # contador de iteracoes
+    li t5, 0 # soma das coordenadas x
+    li t6, 0 # soma das coordenadas y
+    lw t1, n_points 
+    la t2, points # endereco do vetor de pontos
+    la s3, centroids # endereco do vetor de centroides
 
 somaCoordenadas:
     lw t3, 0(t2)
@@ -223,7 +238,25 @@ calculaMedia:
     div t6, t6, t1
     sw t5, 0(s3)
     sw t6, 4(s3)
+    
+    # print
+    la a0, calcula_centroid
+    li a7, 4
+    ecall
+    mv a0, t5
+    li a7, 1
+    ecall
+    la a0, separador
+    li a7, 4
+    ecall
+    mv a0, t6
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
     jr ra
+
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -231,8 +264,7 @@ calculaMedia:
 # Retorno: nenhum
 
 mainSingleCluster:
-
-    #1. Coloca k=1 (caso nao esteja a 1)
+    
     lw s2, k
 
     jal cleanScreen
