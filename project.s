@@ -193,21 +193,22 @@ itera:
 printCentroids:
     lw t0, k # contar numero de iteracoes
     la t1, centroids # endereco do vetor de centroides
+    la t2, colors # Endereco do vetor de cores
     
 executaPrintCentroids:
+    addi t0, t0, -1 # Decrementar o iterador
     lw a0, 0(t1)
     lw a1, 4(t1)
-    li a2, green
+    add t3, t2, t0 # Escolher o indice do vetor de cores
+    lw a2, 0(t3) # Escolher a cor
     addi t1, t1, 8
     addi sp, sp, -4
     sw ra, 0(sp)
     jal printPoint
     lw ra, 0(sp)
     addi sp, sp, 4
-    addi t0, t0, -1
     bgt t0, x0, executaPrintCentroids
     jr ra
-    
 
 ### calculateCentroids
 # Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
