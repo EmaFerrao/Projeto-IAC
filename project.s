@@ -158,23 +158,28 @@ itera_y:
 # Retorno: nenhum
 
 printClusters:
+    la t1, colors
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
     la t4, points
-    lw t5, n_points
-    lw a2, green 
+    la t5, clusters
+    lw t6, n_points
     addi sp, sp, -4
     sw ra, 0(sp)
 
 itera:
-    lw t0, 0(t4)
-    lw t1, 4(t4)
+    lw a0, 0(t4)
+    lw a1, 4(t4)
     addi t4, t4, 8
-    mv a0, t0
-    mv a1, t1
+    
+    lw t0, 0(t5)
+    add t0, t0, t1
+    lw a2, 0(t0)
+    addi t5, t5, 4
+    
     jal printPoint 
-    addi t5, t5, -1
-    bgt t5, x0, itera
+    addi t6, t6, -1
+    bgt t6, x0, itera
     
     lw ra, 0(sp)
     addi sp, sp, 4
