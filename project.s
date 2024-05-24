@@ -371,6 +371,16 @@ updateMenorDistancia:
     # Alterar indice do cluster
     mv t3, t1
     j terminaNearestCluster
+    
+### random
+# Argumentos: nenhum
+# Retorno: 
+# a0: numero aleatorio entre 0 e 31 
+random:
+    li a7, 30
+    ecall
+    li t0, 32
+    remu a0, a0, t0
 
 ### mainKMeans
 # Executa o algoritmo *k-means*.
