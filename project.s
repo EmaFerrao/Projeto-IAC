@@ -56,7 +56,8 @@ L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-clusters:    .zero 50   
+clusters:       .zero 50   
+media_points: .zero 20
 
 
 
@@ -83,10 +84,10 @@ nova_linha:       .string "\n"
  
 .text
     # Chama funcao principal da 1a parte do projeto
-    jal mainSingleCluster
+    # jal mainSingleCluster
 
     # Descomentar na 2a parte do projeto:
-    #jal mainKMeans
+    jal mainKMeans
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -217,43 +218,46 @@ executaPrintCentroids:
 
 calculateCentroids:
     li t0, 0 # contador de iteracoes
-    li t5, 0 # soma das coordenadas x
-    li t6, 0 # soma das coordenadas y
     lw t1, n_points 
     la t2, points # endereco do vetor de pontos
     la s3, centroids # endereco do vetor de centroides
+    la s4, media_points
 
 somaCoordenadas:
     lw t3, 0(t2)
     lw t4, 4(t2)
-    add t5, t5, t3
+    lw t5, 0(s3) # ver a que cluster o ponto pertence
+    slli t5, t5, 2
+    add t5, t5, s4 # endereço do media_points no cluster certo 
+    lw t6, 0(t5) # load da soma dos x do cluster
+    add t6, t6, t3
+    sw t6, 0(t5) # atualizar soma dos x do cluster
+    lw t6, 4(t5) # load da soma dos y do cluster
     add t6, t6, t4
-    addi t2, t2, 8
+    sw t6, 4(t5) # atualizar soma dos y do cluster
+    lw t6, 8(t5) # load do numero de pontos do cluster
+    addi t6, t6, 1
+    sw t6, 8(t5)
+    addi t2, t2, 8 # avancar para proximo ponto
+    addi s3, s3, 4
     addi t0, t0, 1
     blt t0, t1, somaCoordenadas
+    li t0, 0
 
 calculaMedia:
-    div t5, t5, t1
-    div t6, t6, t1
-    sw t5, 0(s3)
-    sw t6, 4(s3)
+    lw t1, 0(s4) # Soma das coordenadas x
+    lw t2, 4(s4) # Soma das coordenadas y
+    lw t3, 8(s4) # Numero de pontos
+    div t1, t1, t3
+    div t2, t2, t3
+    sw t1, 0(s3)
+    sw t2, 4(s3)
+    addi s3, s3, 8
+    addi s4, s4, 12
+    addi t0, t0, 1
+    blt t0, s2, calculaMedia 
+    jr ra 
     
-    la a0, calcula_centroid
-    li a7, 4
-    ecall
-    mv a0, t5
-    li a7, 1
-    ecall
-    la a0, separador
-    li a7, 4
-    ecall
-    mv a0, t6
-    li a7, 1
-    ecall
-    la a0, nova_linha
-    li a7, 4
-    ecall
-    jr ra
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -369,24 +373,20 @@ updateMenorDistancia:
 # Retorno: nenhum
 
 mainKMeans:  
-    lw t0, L
     li t1, 0
-    li t2, 0
-    la t3, points 
-    la t4, clusters
-    la t5, colors
-    lw t6, n_points
+    li t2, 0 
     li s0, 1
-    jal cleanScreen
     addi sp, sp, -4
     sw ra, 0(sp)
     
 mainKMeansIteration:
     beq s0, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
     li s0, 0
+    la t4, clusters
     jal cleanScreen
     
 agruparPontos:
+    la t3, points
     lw a0, 0(t3) # Coordenada x
     lw a1, 4(t3) # Coordenada y
     addi t3, t3, 8
@@ -400,14 +400,17 @@ terminaAgruparPontos:
     sw a0, 0(t4)
     addi t4, t4, 4 
     slli a0, a0, 2
-    add a2, a0, t5 
+    la t5, colors
+    add a2, a0, t5 # a2 = indice cluster + endereco colors
     lw a2, 0(a2) # Cor do ponto
     mv a0, s3 # Recuperar coordenada x
     jal printPoint
     addi t2, t2, 1
+    lw t6, n_points
     blt t2, t6, agruparPontos
     jal calculateCentroids # Calcular novo vetor de centroides
     addi t1, t1, 1
+    lw t0, L
     blt t1, t0, mainKMeansIteration
     
 terminaMainKMeans:
