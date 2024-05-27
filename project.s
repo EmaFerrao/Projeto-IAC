@@ -205,7 +205,8 @@ executaPrintCentroids:
     addi t0, t0, -1 # Decrementar o iterador
     lw a0, 0(t1)
     lw a1, 4(t1)
-    add t3, t2, t0 # Escolher o indice do vetor de cores
+    slli t3, t0, 2
+    add t3, t2, t3 # Escolher o indice do vetor de cores
     lw a2, 0(t3) # Escolher a cor
     addi t1, t1, 8
     addi sp, sp, -4
@@ -233,7 +234,7 @@ somaCoordenadas:
     lw t4, 4(t2)
     lw t5, 0(s3) # ver a que cluster o ponto pertence
     slli t5, t5, 2
-    add t5, t5, s4 # endereÃ§o do media_points no cluster certo 
+    add t5, t5, s4 # endereço do media_points no cluster certo 
     lw t6, 0(t5) # load da soma dos x do cluster
     add t6, t6, t3
     sw t6, 0(t5) # atualizar soma dos x do cluster
@@ -248,6 +249,7 @@ somaCoordenadas:
     addi t0, t0, 1
     blt t0, t1, somaCoordenadas
     li t0, 0
+    lw t4, k
 
 calculaMedia:
     lw t1, 0(s4) # Soma das coordenadas x
@@ -260,7 +262,7 @@ calculaMedia:
     addi s3, s3, 8
     addi s4, s4, 12
     addi t0, t0, 1
-    blt t0, s2, calculaMedia 
+    blt t0, t4, calculaMedia 
     jr ra 
     
 
@@ -270,9 +272,6 @@ calculaMedia:
 # Retorno: nenhum
 
 mainSingleCluster:
-
-    #1. Coloca k=1 (caso nao esteja a 1)
-    lw s2, k
 
     jal cleanScreen
 
@@ -297,31 +296,35 @@ mainSingleCluster:
 
 manhattanDistance:
     #Load
-    add t0, x0, a0  
-    add t1, x0, a1 
-    add t2, x0, a2  
-    add t3, x0, a3 
+    add t0, x0, a0 #coordenada x0
+    add t1, x0, a1 #coordenada y0
+    add t2, x0, a2 #coordenada x1
+    add t3, x0, a3 #coordenada y1
     
-    #x0-y0
-    #x1-y1
-    sub t4, t0, t1 
-    sub t5, t2, t3
+    sub t4, t0, t1 #x0-y0
+    sub t5, t2, t3 #x1-y1
     
     #valores absoluto
-    li t1, -1
-    add t0, x0, t4
-    srli t0, t0, 31
-    mul t0, t0, t1
-    mul t4, t0, t4
+    li t1, -2 #t1 = -2
     
+    add t0, x0, t4 #t0 = x0-y0
+    srli t0, t0, 31 #fazemos 31 bit shifts para a direita, 
+                    #ou seja t0 passa a ser 0 se t0 for positivo, 
+                    #e 1 se t0 for negativo
+    mul t0, t0, t1  #t0 = t0 * t1, logo t0 = 0 ou t0 = -2
+    addi t0, t0, 1  #t0 = t0 + 1, logo t0 = 1 ou t0 = -1
+    mul t4, t0, t4  #t4 = t0 * t4, logo temos o valor absoluto,
+    
+    #Fazemos o mesmo para t5
     add t0, x0, t5
     srli t0, t0, 31
-    mul t0, t0, t1
-    mul t5, t0, t5
     
-    #d = |x0-y0| + |x1-y1|
-    add t0, t4, t5
-    add a0, x0, t0
+    mul t0, t0, t1
+    addi t0, t0, 1 
+    mul t5, t0, t5
+ 
+    add t0, t4, t5 #|x0-y0| + |x1-y1|
+    add a0, x0, t0 # a0 = |x0-y0| + |x1-y1|
     
     jr ra
 
@@ -335,7 +338,7 @@ manhattanDistance:
 
 nearestCluster:
     la t0, centroids # Endereco do vetor de centroides
-    li t1, 0 # Contador de iteracoes
+    lw t1, k # Contador de iteracoes
     
     # Inicializar a width + height
     li t2, LED_MATRIX_WIDTH
@@ -358,8 +361,8 @@ calculaManhattanDistance:
     blt a0, t2, updateMenorDistancia
         
 terminaNearestCluster:
-    addi t1, t1, 1 # Incrementa iterador
-    blt t1, s2, calculaManhattanDistance
+    addi t1, t1, -1 # Decrementa iterador
+    bgt t1, x0, calculaManhattanDistance
     mv a0, t3
     lw ra, 0(sp)
     addi sp, sp, 4
@@ -387,50 +390,68 @@ random:
 # Argumentos: nenhum
 # Retorno: nenhum
 
-mainKMeans:  
-    li t1, 0
-    li t2, 0 
-    li s0, 1
-    addi sp, sp, -4
-    sw ra, 0(sp)
+mainKMeans:
+    li s0, 1 # s0 eh 1 se houver alteracoes nos clusters
+    li s1, 0 # iterador para comparar com L
+    li s2, 0 # iterador do numero de pontos
+    la s3, points
+    la s4, clusters
+    addi sp, sp, -24
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+    sw s4, 16(sp)
+    sw ra, 20(sp)
     
 mainKMeansIteration:
+    lw s0, 0(sp)
     beq s0, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
     li s0, 0
-    la t4, clusters
+    sw s0, 0(sp)
     jal cleanScreen
     
 agruparPontos:
-    la t3, points
-    lw a0, 0(t3) # Coordenada x
-    lw a1, 4(t3) # Coordenada y
-    addi t3, t3, 8
-    mv s3, a0 # Guardar coordenada x
+    lw s3, 12(sp)
+    lw a0, 0(s3) # Coordenada x
+    lw a1, 4(s3) # Coordenada y
+    addi s3, s3, 8
+    sw s3, 12(sp)
+    mv s3, a0 # Guardar coordenada x MUDAR REGISTO
     jal nearestCluster
-    lw s1, 0(t4)
-    beq a0, s1, terminaAgruparPontos # Se nao mudamos o ponto de cluster
-    li s0, 1 # Se mudamos, meter 1 no s0
+    lw s4, 16(sp)
+    lw t1, 0(s4) # load do cluster antigo do ponto
+    beq a0, t1, terminaAgruparPontos # Se nao mudamos o ponto de cluster
+    li s0, 1
+    sw s0, 0(sp) # Se mudamos, meter 1 no s0
 
 terminaAgruparPontos:
-    sw a0, 0(t4)
-    addi t4, t4, 4 
+    sw a0, 0(s4) # guarda cluster atual
+    addi s4, s4, 4 
+    sw s4, 16(sp)
     slli a0, a0, 2
     la t5, colors
     add a2, a0, t5 # a2 = indice cluster + endereco colors
     lw a2, 0(a2) # Cor do ponto
     mv a0, s3 # Recuperar coordenada x
-    jal printPoint
-    addi t2, t2, 1
+    #jal printPoint
+    lw s2, 8(sp)
+    addi s2, s2, 1
+    sw s2, 8(sp)
     lw t6, n_points
-    blt t2, t6, agruparPontos
+    blt s2, t6, agruparPontos
     jal calculateCentroids # Calcular novo vetor de centroides
-    addi t1, t1, 1
+    jal printCentroids
+    jal printClusters
+    lw s1, 4(sp)
+    addi s1, s1, 1
+    sw s1, 4(sp)
     lw t0, L
-    blt t1, t0, mainKMeansIteration
+    blt s1, t0, mainKMeansIteration
     
 terminaMainKMeans:
-    addi sp, sp, 4 
-    lw ra, 0(sp)
+    lw ra, 20(sp)
+    addi sp, sp, 24
     jr ra
     
     # 1. Escolher k pontos random para ser centroides (feito)
