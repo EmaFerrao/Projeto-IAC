@@ -226,7 +226,7 @@ calculateCentroids:
     li t0, 0 # contador de iteracoes
     lw t1, n_points 
     la t2, points # endereco do vetor de pontos
-    la s3, centroids # endereco do vetor de centroides
+    la s3, clusters # endereco do vetor de centroides
     la s4, media_points
 
 somaCoordenadas:
