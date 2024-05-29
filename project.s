@@ -172,7 +172,9 @@ itera:
     lw a1, 4(t4)
     addi t4, t4, 8
     
+    # Escolher a cor do cluster
     lw t0, 0(t5)
+    slli t0, t0, 2
     add t0, t0, t1
     lw a2, 0(t0)
     addi t5, t5, 4
