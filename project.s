@@ -58,7 +58,7 @@ L:           .word 10
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
 clusters:     .zero 120   
-media_points: .zero 500
+media_points: .zero 120
 
 
 
@@ -88,13 +88,13 @@ nova_linha:       .string "\n"
     # jal mainSingleCluster
 
     # Descomentar na 2a parte do projeto:
-    #jal mainKMeans
+    jal mainKMeans
     #jal initializeCentroids
-    jal cleanScreen
-    jal calculateClusters
-    jal calculateCentroids
-    jal printClusters
-    jal printCentroids
+    #jal cleanScreen
+    #jal calculateClusters
+    #jal calculateCentroids
+    #jal printClusters
+    #jal printCentroids
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -229,7 +229,8 @@ executaPrintCentroids:
 ### calculateCentroids
 # Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
 # Argumentos: nenhum
-# Retorno: nenhum
+# Retorno: 
+# a0: 1 se centroides forem alterados, 0 caso contrario
 
 calculateCentroids:
     addi sp, sp, -12
@@ -243,6 +244,7 @@ calculateCentroids:
     la s1, clusters # endereco do vetor de clusters
     la s2, media_points
     li s3, 12
+    li a0, 0
 
 somaCoordenadas:
     lw t3, 0(t2) # x
@@ -273,19 +275,27 @@ calculaMedia:
     lw t3, 8(s2) # Numero de pontos
     div t1, t1, t3
     div t2, t2, t3
+    lw t5, 0(s1)
+    lw t6, 4(s1)
+    bne t1, t5, centroidesAlterados
+    bne t2, t6, centroidesAlterados
+    
+finalizaCalculaMedia:
     sw t1, 0(s1)
     sw t2, 4(s1)
     addi s1, s1, 8
     addi s2, s2, 12
     addi t0, t0, 1
     blt t0, t4, calculaMedia 
-    
     lw s3, 8(sp)
     lw s2, 4(sp)
     lw s1, 0(sp)
     addi sp, sp, 12
     jr ra 
     
+centroidesAlterados:
+    li a0, 1
+    j finalizaCalculaMedia
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -455,26 +465,23 @@ calculateClusters_loop:
 # Retorno: nenhum
 
 mainKMeans:
-    li s0, 1 # s0 eh 1 se houver alteracoes nos clusters
     li s1, 0 # iterador para comparar com L
-    li s2, 0 # iterador do numero de pontos
-    la s3, points
-    la s4, clusters
+    lw s2, L # iterador do numero de pontos
+    li s3, 1 # verificar se nao houve alteracoes nos centroides
     addi sp, sp, -4
     sw ra, 0(sp)
-    #jal initializeCentroids
+    jal initializeCentroids
     
 mainKMeansIteration:
-    beq s0, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
-    li s0, 0
+    beq s3, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
     jal cleanScreen
     jal calculateClusters
     jal calculateCentroids # Calcular novo vetor de centroides
-    jal printCentroids
+    mv s3, a0
     jal printClusters
+    jal printCentroids
     addi s1, s1, 1
-    lw t0, L
-    blt s1, t0, mainKMeansIteration
+    blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
     lw ra, 0(sp)
