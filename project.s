@@ -50,7 +50,8 @@ points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6
 #k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-centroids:   .word 0,0, 10,0, 0,10
+#centroids:   .word 0,0, 10,0, 0,10
+centroids:    .word 2, 8, 14, 0, 0, 24
 k:           .word 3
 L:           .word 10
 
@@ -87,9 +88,12 @@ nova_linha:       .string "\n"
     # jal mainSingleCluster
 
     # Descomentar na 2a parte do projeto:
-    jal mainKMeans
-    #jal cleanScreen
-    #jal printClusters
+    # jal mainKMeans
+    # jal initializeCentroids
+    jal cleanScreen
+    jal calculateClusters
+    jal printClusters
+    jal printCentroids
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -352,42 +356,53 @@ manhattanDistance:
 # a0: cluster index
 
 nearestCluster:
-    la t0, centroids # Endereco do vetor de centroides
-    lw t1, k # Contador de iteracoes
+    addi sp, sp, -24
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+    sw s4, 20(sp)
+    
+    la s0, centroids # Endereco do vetor de centroides
+    lw s1, k # Contador de iteracoes
+    li s4, 0
     
     # Inicializar a width + height
-    li t2, LED_MATRIX_WIDTH
-    li t3, LED_MATRIX_HEIGHT
-    add t2, t2, t3  # Guarda a maior distancia possivel
+    li s2, LED_MATRIX_WIDTH
+    li s3, LED_MATRIX_HEIGHT
+    add s2, s2, s3  # Guarda a maior distancia possivel
     
     # Inicializar o indice da menor distancia
-    li t3, 0
-    
-    addi sp, sp, -4 # Guardar ra no stack
-    sw ra, 0(sp)
+    li s3, 0
     
 calculaManhattanDistance:
-    lw a2, 0(t0) # Colocar os valores nos resgistos necessarios
-    lw a3, 4(t0) # para calcular a manhattan distance
-    addi t0, t0, 8 # Passa para o proximo centroide
+    lw a2, 0(s0) # Colocar os valores nos resgistos necessarios
+    lw a3, 4(s0) # para calcular a manhattan distance
+    addi s0, s0, 8 # Passa para o proximo centroide
     jal manhattanDistance # Calcular manhattan distance
     
     ### Calcular menor distancia ###
-    blt a0, t2, updateMenorDistancia
+    blt a0, s2, updateMenorDistancia
         
 terminaNearestCluster:
-    addi t1, t1, -1 # Decrementa iterador
-    bgt t1, x0, calculaManhattanDistance
-    mv a0, t3
+    addi s4, s4, 1
+    ble s4, s1, calculaManhattanDistance
+    mv a0, s3
     lw ra, 0(sp)
-    addi sp, sp, 4
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+    addi sp, sp, 24
     jr ra
     
 updateMenorDistancia:
-    # Alterar menor distancia
-    mv t2, a0
-    # Alterar indice do cluster
-    mv t3, t1
+    # Guardar menor distancia
+    mv s2, a0
+    # Guardar indice do centroide mais proximo
+    mv s3, s4
     j terminaNearestCluster
     
 ### initializeCentroids
@@ -417,24 +432,31 @@ initializeCentroids_loop:
 # Retorno: nenhum
 
 calculateClusters:
-    la t0, points
-    la t1, clusters
-    lw t2, n_points
-    addi sp, sp, -4
+    addi sp, sp, -16
     sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    
+    la s0, points
+    la s1, clusters
+    lw s2, n_points
     
 calculateClusters_loop:
-    lw a0, 0(t0) # x
-    lw a1, 4(t0) # y
-    addi t0, t0, 8
+    lw a0, 0(s0) # x
+    lw a1, 4(s0) # y
+    addi s0, s0, 8
     jal nearestCluster
-    sw a0, 0(t1)
-    addi t1, t1, 4
-    addi t2, t2, -1
-    bgt t2, x0, calculateClusters_loop
+    sw a0, 0(s1)
+    addi s1, s1, 4
+    addi s2, s2, -1
+    bgt s2, x0, calculateClusters_loop
     
     lw ra, 0(sp)
-    addi sp, sp, 4
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    addi sp, sp, 16
     jr ra
 
 
@@ -451,7 +473,7 @@ mainKMeans:
     la s4, clusters
     addi sp, sp, -4
     sw ra, 0(sp)
-    jal initializeCentroids
+    #jal initializeCentroids
     
 mainKMeansIteration:
     beq s0, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
