@@ -58,7 +58,7 @@ L:           .word 10
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
 clusters:     .zero 120   
-media_points: .zero 20
+media_points: .zero 500
 
 
 
@@ -88,12 +88,13 @@ nova_linha:       .string "\n"
     # jal mainSingleCluster
 
     # Descomentar na 2a parte do projeto:
-    # jal mainKMeans
-    # jal initializeCentroids
+    #jal mainKMeans
+    #jal initializeCentroids
     jal cleanScreen
     jal calculateClusters
-    jal printCentroids
+    jal calculateCentroids
     jal printClusters
+    jal printCentroids
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -165,8 +166,6 @@ itera_y:
 
 printClusters:
     la t1, colors
-    # li t2, LED_MATRIX_WIDTH
-    # li t3, LED_MATRIX_HEIGHT
     la t2, points
     la t3, clusters
     lw t4, n_points
@@ -233,21 +232,23 @@ executaPrintCentroids:
 # Retorno: nenhum
 
 calculateCentroids:
-    addi sp, sp, -8
+    addi sp, sp, -12
     sw s1, 0(sp)
     sw s2, 4(sp)
+    sw s3, 8(sp)
 
     li t0, 0 # contador de iteracoes
     lw t1, n_points 
     la t2, points # endereco do vetor de pontos
     la s1, clusters # endereco do vetor de clusters
     la s2, media_points
+    li s3, 12
 
 somaCoordenadas:
-    lw t3, 0(t2) # coordenada x
-    lw t4, 4(t2) # coordenada y
+    lw t3, 0(t2) # x
+    lw t4, 4(t2) # y
     lw t5, 0(s1) # ver a que cluster o ponto pertence
-    slli t5, t5, 2
+    mul t5, t5, s3
     add t5, t5, s2 # endereco do media_points no cluster certo 
     lw t6, 0(t5) # load da soma dos x do cluster
     add t6, t6, t3
@@ -261,7 +262,7 @@ somaCoordenadas:
     addi t2, t2, 8 # avancar para proximo ponto
     addi s1, s1, 4
     addi t0, t0, 1
-    ble t0, t1, somaCoordenadas
+    blt t0, t1, somaCoordenadas
     li t0, 0
     lw t4, k
     la s1, centroids
@@ -279,9 +280,10 @@ calculaMedia:
     addi t0, t0, 1
     blt t0, t4, calculaMedia 
     
+    lw s3, 8(sp)
     lw s2, 4(sp)
     lw s1, 0(sp)
-    addi sp, sp, 8
+    addi sp, sp, 12
     jr ra 
     
 
@@ -314,8 +316,8 @@ mainSingleCluster:
 # a0: distance
 
 manhattanDistance:
-    sub t0, a0, a2 #x0-x1
-    sub t1, a1, a3 #y0-y1
+    sub t0, a0, a2 # x0-x1
+    sub t1, a1, a3 # y0-y1
     li t2, -1
     
 modulos:
@@ -350,8 +352,8 @@ nearestCluster:
     sw s4, 20(sp)
     
     la s0, centroids # Endereco do vetor de centroides
-    lw s1, k # Contador de iteracoes
-    li s4, 0
+    lw s1, k 
+    li s4, 0 # Iterador
     
     # Inicializar a width + height
     li s2, LED_MATRIX_WIDTH
