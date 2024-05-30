@@ -273,8 +273,11 @@ calculaMedia:
     lw t1, 0(s2) # Soma das coordenadas x
     lw t2, 4(s2) # Soma das coordenadas y
     lw t3, 8(s2) # Numero de pontos
+    beq t3, x0, novoCentroide
     div t1, t1, t3
     div t2, t2, t3
+    
+voltaCalculaMedia:
     lw t5, 0(s1)
     lw t6, 4(s1)
     bne t1, t5, centroidesAlterados
@@ -296,6 +299,13 @@ finalizaCalculaMedia:
 centroidesAlterados:
     li a0, 1
     j finalizaCalculaMedia
+    
+novoCentroide:
+    jal initializeOneCentroide
+    mv t1, a0 # x
+    mv t2, a1 # y
+    j voltaCalculaMedia
+    
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -409,20 +419,49 @@ updateMenorDistancia:
 # Retorno: nenhum
  
 initializeCentroids:
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
     lw t0, k
-    slli t0, t0, 1
     la t1, centroids
     
 initializeCentroids_loop:
-    li a7, 30
-    ecall
-    li t2, 32
-    remu a0, a0, t2
-    
-    sw a0, 0(t1)
-    addi t1, t1, 4
+    jal initializeOneCentroide
+    sw a0, 0(t1) 
+    sw a1, 4(t1)
+    addi t1, t1, 8
     addi t0, t0, -1
     bgt t0, x0, initializeCentroids_loop
+    
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    jr ra
+    
+    
+### initializeOneCentroide
+# Argumentos: nenhum
+# Retorno: 
+# a0: x 
+# a1: y
+
+initializeOneCentroide:
+    addi sp, sp, -8
+    sw s1, 0(sp)
+    sw s2, 4(sp)
+    
+    li a7, 30
+    ecall
+    li s1, 32
+    remu s2, a0, s1
+    li a7, 30
+    ecall
+    remu a1, a0, s1
+    mv a0, s2
+    
+    lw s1, 0(sp)
+    lw s2, 4(sp)
+    addi sp, sp, 8
+    
     jr ra
     
 
