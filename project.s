@@ -314,38 +314,23 @@ mainSingleCluster:
 # a0: distance
 
 manhattanDistance:
-    #Load
-    add t0, x0, a0 #coordenada x0
-    add t1, x0, a1 #coordenada y0
-    add t2, x0, a2 #coordenada x1
-    add t3, x0, a3 #coordenada y1
+    sub t0, a0, a2 #x0-x1
+    sub t1, a1, a3 #y0-y1
+    li t2, -1
     
-    sub t4, t0, t1 #x0-y0
-    sub t5, t2, t3 #x1-y1
-    
-    #valores absoluto
-    li t1, -2 #t1 = -2
-    
-    add t0, x0, t4 #t0 = x0-y0
-    srli t0, t0, 31 #fazemos 31 bit shifts para a direita, 
-                    #ou seja t0 passa a ser 0 se t0 for positivo, 
-                    #e 1 se t0 for negativo
-    mul t0, t0, t1  #t0 = t0 * t1, logo t0 = 0 ou t0 = -2
-    addi t0, t0, 1  #t0 = t0 + 1, logo t0 = 1 ou t0 = -1
-    mul t4, t0, t4  #t4 = t0 * t4, logo temos o valor absoluto,
-    
-    #Fazemos o mesmo para t5
-    add t0, x0, t5
-    srli t0, t0, 31
-    
-    mul t0, t0, t1
-    addi t0, t0, 1 
-    mul t5, t0, t5
- 
-    add t0, t4, t5 #|x0-y0| + |x1-y1|
-    add a0, x0, t0 # a0 = |x0-y0| + |x1-y1|
-    
+modulos:
+    blt t0, x0, modulo_x
+    blt t1, x0, modulo_y
+    add a0, t0, t1
     jr ra
+    
+modulo_x:
+    mul t0, t0, t2
+    j modulos
+    
+modulo_y:
+    mul t1, t1, t2
+    j modulos
 
 
 ### nearestCluster
@@ -375,8 +360,10 @@ nearestCluster:
     
     # Inicializar o indice da menor distancia
     li s3, 0
+    mv t6, a0 # guardar x
     
 calculaManhattanDistance:
+    mv a0, t6
     lw a2, 0(s0) # Colocar os valores nos resgistos necessarios
     lw a3, 4(s0) # para calcular a manhattan distance
     addi s0, s0, 8 # Passa para o proximo centroide
