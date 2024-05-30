@@ -92,8 +92,8 @@ nova_linha:       .string "\n"
     # jal initializeCentroids
     jal cleanScreen
     jal calculateClusters
-    jal printClusters
     jal printCentroids
+    jal printClusters
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -364,8 +364,8 @@ nearestCluster:
     
 calculaManhattanDistance:
     mv a0, t6
-    lw a2, 0(s0) # Colocar os valores nos resgistos necessarios
-    lw a3, 4(s0) # para calcular a manhattan distance
+    lw a2, 0(s0) # x do centroide
+    lw a3, 4(s0) # y do centroide
     addi s0, s0, 8 # Passa para o proximo centroide
     jal manhattanDistance # Calcular manhattan distance
     
@@ -374,7 +374,7 @@ calculaManhattanDistance:
         
 terminaNearestCluster:
     addi s4, s4, 1
-    ble s4, s1, calculaManhattanDistance
+    blt s4, s1, calculaManhattanDistance
     mv a0, s3
     lw ra, 0(sp)
     lw s0, 4(sp)
