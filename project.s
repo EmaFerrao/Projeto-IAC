@@ -36,12 +36,12 @@
 #points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
-#n_points:    .word 23
-#points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
+n_points:    .word 23
+points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+#n_points:    .word 30
+#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -231,11 +231,12 @@ executaPrintCentroids:
 # a0: 1 se centroides forem alterados, 0 caso contrario
 
 calculateCentroids:
-    addi sp, sp, -16
-    sw s1, 0(sp)
-    sw s2, 4(sp)
-    sw s3, 8(sp)
-    sw s4, 12(sp)
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+    sw s4, 16(sp)
 
     li t0, 0 # contador de iteracoes
     lw t1, n_points 
@@ -273,7 +274,7 @@ calculaMedia:
     lw t1, 0(s2) # Soma das coordenadas x
     lw t2, 4(s2) # Soma das coordenadas y
     lw t3, 8(s2) # Numero de pontos
-    #beq t3, x0, novoCentroide
+    beq t3, x0, novoCentroide
     div t1, t1, t3
     div t2, t2, t3
     
@@ -315,11 +316,12 @@ guardaCentroid:
     addi t0, t0, 1
     blt t0, t4, calculaMedia # se indice de centroide < k
     mv a0, s4
-    lw s4, 12(sp)
-    lw s3, 8(sp)
-    lw s2, 4(sp)
-    lw s1, 0(sp)
-    addi sp, sp, 16
+    lw s4, 16(sp)
+    lw s3, 12(sp)
+    lw s2, 8(sp)
+    lw s1, 4(sp)
+    lw ra, 0(sp)
+    addi sp, sp, 20
     jr ra 
     
 centroidesAlterados:
@@ -476,7 +478,7 @@ initializeCentroids_loop:
     sw a1, 4(t1)
     addi t1, t1, 8
     addi t0, t0, 1
-    bgt t0, t2, initializeCentroids_loop
+    blt t0, t2, initializeCentroids_loop
     
     lw ra, 0(sp)
     addi sp, sp, 4
