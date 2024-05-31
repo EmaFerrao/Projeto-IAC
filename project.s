@@ -67,7 +67,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 # Strings a imprimir no fim de cada passo
 inicio:               .string "------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-iteracao_n:           .string "ITERACAO Nï¿½ "
+iteracao_n:           .string "ITERACAO Nº "
 numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais\n"
 limpa_matriz:         .string "Limpa matriz\n"
@@ -298,7 +298,7 @@ centroidesAlterados:
     j guardaCentroid
     
 novoCentroide:
-    # print "Nova inicializacao do centroide [indice]\n"
+    # print "Nova inicializacao do centroid [indice]\n"
     la a0, nova_inicializacao 
     li a7, 4
     ecall
@@ -309,7 +309,7 @@ novoCentroide:
     li a7, 4
     ecall
     
-    jal initializeOneCentroide
+    jal initializeOneCentroid
     mv t2, a0 # x
     mv t3, a1 # y
     j comparaCentroids
@@ -513,7 +513,7 @@ initializeCentroids_loop:
     li a7, 4
     ecall
     
-    jal initializeOneCentroide
+    jal initializeOneCentroid
     sw a0, 0(t1) 
     sw a1, 4(t1)
     
@@ -539,13 +539,13 @@ initializeCentroids_loop:
     jr ra
     
     
-### initializeOneCentroide
+### initializeOneCentroid
 # Argumentos: nenhum
 # Retorno: 
 # a0: x 
 # a1: y
 
-initializeOneCentroide:
+initializeOneCentroid:
     addi sp, sp, -8
     sw s1, 0(sp)
     sw s2, 4(sp)
@@ -611,13 +611,13 @@ mainKMeans:
     
     li s1, 0 # iterador para comparar com L
     lw s2, L 
-    li s3, 1 # verificar se nao houve alteracoes nos centroides
+    li s3, 1 # verificar se nao houve alteracoes nos centroids
     addi sp, sp, -4
     sw ra, 0(sp)
     jal initializeCentroids
     
 mainKMeansIteration:
-    # print "\nITERACAO NÂº [indice]\n"
+    # print "\nITERACAO Nº [indice]\n"
     la a0, nova_linha
     li a7, 4
     ecall
