@@ -72,7 +72,7 @@ numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais\n"
 limpa_matriz:         .string "Limpa matriz\n"
 print_cluster:        .string "Print cluster\n"
-coordenadas_centroid: .string "Coordenadas centroid "
+coordenadas_centroid: .string "Coordenadas do centroid "
 nova_inicializacao:   .string "Nova inicializacao do centroid "
 separador:            .string ", "
 hifen:                .string " - "
@@ -219,6 +219,7 @@ executaPrintCentroids:
 
 ### calculateCentroids
 # Calcula os k centroids, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
+# OPTIMIZATION: Se um cluster nao tiver nenhum ponto associado, inicializa um novo centroid aleatorio
 # Argumentos: nenhum
 # Retorno: 
 # a0: 1 se centroids forem alterados, 0 caso contrario
@@ -238,10 +239,10 @@ calculateCentroids:
     lw t1, k
 
 calculaMedia:
-    lw t2, 0(s2) # Soma das coordenadas x
-    lw t3, 4(s2) # Soma das coordenadas y
-    lw t4, 8(s2) # Numero de pontos
-    beq t4, x0, novoCentroid
+    lw t2, 0(s2) # soma das coordenadas x
+    lw t3, 4(s2) # soma das coordenadas y
+    lw t4, 8(s2) # numero de pontos
+    beq t4, x0, novoCentroid # <- OPTIMIZATION
     div t2, t2, t4
     div t3, t3, t4
     
@@ -257,29 +258,10 @@ guardaCentroid:
     addi s1, s1, 8
     addi s2, s2, 12
     
-    # print "Coordenadas centroid [indice]\n"
-    # print "[x], [y]\n"
-    la a0, coordenadas_centroid
-    li a7, 4
-    ecall
-    mv a0, t0 # indice do centroid
-    li a7, 1
-    ecall
-    la a0, hifen
-    li a7, 4
-    ecall
-    mv a0, t2 # x
-    li a7, 1
-    ecall
-    la a0, separador
-    li a7, 4
-    ecall
-    mv a0, t3 # y
-    li a7, 1
-    ecall
-    la a0, nova_linha
-    li a7, 4
-    ecall
+    mv a0, t0
+    mv a1, t2
+    mv a2, t3
+    jal printCoordenadasCentroids
     
     addi t0, t0, 1 # iterador + 1
     blt t0, t1, calculaMedia # se indice de centroide < k
@@ -313,7 +295,40 @@ novoCentroid:
     mv t2, a0 # x
     mv t3, a1 # y
     j comparaCentroids
+
+### printCoordenadasCentroids
+# Imprime as coordenadas dos centroids
+# Argumentos:
+# a0: indice do centroid
+# a1: x do centroid
+# a2: y do centroid
+printCoordenadasCentroids:
+    # print "Coordenadas do centroid [indice]\n"
+    # print "[x], [y]\n"
+    mv t0, a0
+    la a0, coordenadas_centroid
+    li a7, 4
+    ecall
+    mv a0, t0
+    li a7, 1
+    ecall
+    la a0, hifen
+    li a7, 4
+    ecall
+    mv a0, a1 # x
+    li a7, 1
+    ecall
+    la a0, separador
+    li a7, 4
+    ecall
+    mv a0, a2 # y
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
     
+    jr ra
     
 ### somaCoordenadasClusters
 # Soma as coordenadas x dos pontos de um cluster (idem para y) 
