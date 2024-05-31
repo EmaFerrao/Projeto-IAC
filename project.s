@@ -74,11 +74,13 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 
 # Strings a imprimir no fim de cada passo
-limpa_matriz:     .string "Limpa matriz\n"
-print_cluster:    .string "Print cluster\n"
-calcula_centroid: .string "Calcula centroide\n"
-separador:        .string ", "
-nova_linha:       .string "\n"
+limpa_matriz:         .string "Limpa matriz\n"
+print_cluster:        .string "Print cluster\n"
+coordenadas_centroid: .string "Coordenadas centroide "
+numero_iteracoes:     .string "Numero de iteracoes: "
+centroides_iniciais:  .string "Centroides iniciais"
+separador:            .string ", "
+nova_linha:           .string "\n"
 
 
 # Codigo
@@ -207,7 +209,6 @@ printCentroids:
     lw t0, k # contar numero de iteracoes
     la t1, centroids # endereco do vetor de centroides
     li a2, black
-    #la t2, colors # Endereco do vetor de cores
     addi sp, sp, -4
     sw ra, 0(sp)
     
@@ -215,9 +216,6 @@ executaPrintCentroids:
     addi t0, t0, -1 # Decrementar o iterador
     lw a0, 0(t1) # x
     lw a1, 4(t1) # y
-    #slli t3, t0, 2
-    #add t3, t2, t3 # Escolher o indice do vetor de cores
-    #lw a2, 0(t3) # Escolher a cor
     addi t1, t1, 8
     jal printPoint
     bgt t0, x0, executaPrintCentroids
@@ -233,10 +231,11 @@ executaPrintCentroids:
 # a0: 1 se centroides forem alterados, 0 caso contrario
 
 calculateCentroids:
-    addi sp, sp, -12
+    addi sp, sp, -16
     sw s1, 0(sp)
     sw s2, 4(sp)
     sw s3, 8(sp)
+    sw s4, 12(sp)
 
     li t0, 0 # contador de iteracoes
     lw t1, n_points 
@@ -244,13 +243,13 @@ calculateCentroids:
     la s1, clusters # endereco do vetor de clusters
     la s2, media_points
     li s3, 12
-    li a0, 0
+    li s4, 0
 
 somaCoordenadas:
     lw t3, 0(t2) # x
     lw t4, 4(t2) # y
     lw t5, 0(s1) # ver a que cluster o ponto pertence
-    mul t5, t5, s3
+    mul t5, t5, s3 # indice de cluster x 12
     add t5, t5, s2 # endereco do media_points no cluster certo 
     lw t6, 0(t5) # load da soma dos x do cluster
     add t6, t6, t3
@@ -264,7 +263,7 @@ somaCoordenadas:
     addi t2, t2, 8 # avancar para proximo ponto
     addi s1, s1, 4
     addi t0, t0, 1
-    blt t0, t1, somaCoordenadas
+    blt t0, t1, somaCoordenadas # numero de iteracaoes < n_points
     li t0, 0
     lw t4, k
     la s1, centroids
@@ -288,16 +287,42 @@ finalizaCalculaMedia:
     sw t2, 4(s1)
     addi s1, s1, 8
     addi s2, s2, 12
+    
+    # print
+    la a0, coordenadas_centroid
+    li a7, 4
+    ecall
+    mv a0, t0
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    mv a0, t1
+    li a7, 1
+    ecall
+    la a0, separador
+    li a7, 4
+    ecall
+    mv a0, t2
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
     addi t0, t0, 1
     blt t0, t4, calculaMedia 
+    mv a0, s4
+    lw s4, 12(sp)
     lw s3, 8(sp)
     lw s2, 4(sp)
     lw s1, 0(sp)
-    addi sp, sp, 12
+    addi sp, sp, 16
     jr ra 
     
 centroidesAlterados:
-    li a0, 1
+    li s4, 1
     j finalizaCalculaMedia
     
 novoCentroide:
@@ -422,16 +447,35 @@ initializeCentroids:
     addi sp, sp, -4
     sw ra, 0(sp)
     
-    lw t0, k
+    li t0, 0
     la t1, centroids
+    lw t2, k
+    
+    la a0, centroides_iniciais
+    li a7, 4
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
     
 initializeCentroids_loop:
+    # print
+    la a0, coordenadas_centroid
+    li a7, 4
+    ecall
+    mv a0, t0
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
     jal initializeOneCentroide
     sw a0, 0(t1) 
     sw a1, 4(t1)
     addi t1, t1, 8
-    addi t0, t0, -1
-    bgt t0, x0, initializeCentroids_loop
+    addi t0, t0, 1
+    bgt t0, t2, initializeCentroids_loop
     
     lw ra, 0(sp)
     addi sp, sp, 4
@@ -451,13 +495,29 @@ initializeOneCentroide:
     
     li a7, 30
     ecall
-    li s1, 32
-    remu s2, a0, s1
+    andi s2, a0, 0x1F
+    #li s1, 32
+    #remu s2, a0, s1
     li a7, 30
     ecall
-    remu a1, a0, s1
-    mv a0, s2
+    andi a1, a0, 0x1F
+    #remu a1, a0, s1
     
+    # print
+    mv a0, s2
+    li a7, 1
+    ecall
+    la a0, separador
+    li a7, 4
+    ecall
+    mv a0, a1
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
+    mv a0, s2
     lw s1, 0(sp)
     lw s2, 4(sp)
     addi sp, sp, 8
@@ -523,6 +583,9 @@ mainKMeansIteration:
     blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
+    la a0, numero_iteracoes
+    li a7, 4
+    ecall
     li a7 1
     mv a0, s1
     ecall 
