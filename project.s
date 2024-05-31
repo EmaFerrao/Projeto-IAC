@@ -1,7 +1,7 @@
 #
 # IAC 2023/2024 k-means
 # 
-# Grupo:
+# Grupo: 28
 # Campus: Alameda
 #
 # Autores:
@@ -56,31 +56,26 @@ L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-clusters:     .zero 120   
-media_points: .zero 120
-
-
-
+clusters:         .zero 120   
+media_points:     .zero 120
 
 #Definicoes de cores a usar no projeto 
-
 colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0, 1, 2, etc.
-
 .equ         black      0
 .equ         white      0xffffff
-.equ         green      0x00ff00
-
 
 
 # Strings a imprimir no fim de cada passo
+iteracao_n:           .string "ITERACAO Nº "
 limpa_matriz:         .string "Limpa matriz\n"
 print_cluster:        .string "Print cluster\n"
 coordenadas_centroid: .string "Coordenadas centroide "
 numero_iteracoes:     .string "Numero de iteracoes: "
-centroides_iniciais:  .string "Centroides iniciais"
-nova_inicializacao:   .string "Nova inicializacao do cluster "
+centroides_iniciais:  .string "Centroides iniciais\n"
+nova_inicializacao:   .string "Nova inicializacao do centroide "
 separador:            .string ", "
 nova_linha:           .string "\n"
+
 
 
 # Codigo
@@ -149,6 +144,7 @@ itera_y:
     lw ra, 0(sp)
     addi sp, sp, 4
     
+    # print "Limpa matriz"
     la a0, limpa_matriz
     li a7, 4
     ecall
@@ -186,7 +182,7 @@ printClusters_loop:
     lw ra, 0(sp)
     addi sp, sp, 4
     
-    # print
+    # print "Print cluster"
     la a0, print_cluster
     li a7, 4
     ecall
@@ -218,6 +214,7 @@ executaPrintCentroids:
     addi sp, sp, 4
     jr ra
 
+
 ### calculateCentroids
 # Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
 # Argumentos: nenhum
@@ -225,66 +222,41 @@ executaPrintCentroids:
 # a0: 1 se centroides forem alterados, 0 caso contrario
 
 calculateCentroids:
-    addi sp, sp, -20
+    addi sp, sp, -16
     sw ra, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
     sw s3, 12(sp)
-    sw s4, 16(sp)
 
-    li t0, 0 # contador de iteracoes
-    lw t1, n_points 
-    la t2, points # endereco do vetor de pontos
-    la s1, clusters # endereco do vetor de clusters
-    la s2, media_points
-    li s3, 12
-    li s4, 0
-
-somaCoordenadas:
-    lw t3, 0(t2) # x
-    lw t4, 4(t2) # y
-    lw t5, 0(s1) # ver a que cluster o ponto pertence
-    mul t5, t5, s3 # indice de cluster x 12
-    add t5, t5, s2 # endereco do media_points no cluster certo 
-    lw t6, 0(t5) # load da soma dos x do cluster
-    add t6, t6, t3
-    sw t6, 0(t5) # atualizar soma dos x do cluster
-    lw t6, 4(t5) # load da soma dos y do cluster
-    add t6, t6, t4
-    sw t6, 4(t5) # atualizar soma dos y do cluster
-    lw t6, 8(t5) # load do numero de pontos do cluster
-    addi t6, t6, 1
-    sw t6, 8(t5)
-    addi t2, t2, 8 # avancar para proximo ponto
-    addi s1, s1, 4
-    addi t0, t0, 1
-    blt t0, t1, somaCoordenadas # numero de iteracoes < n_points
-    
-    li t0, 0
-    lw t4, k
+    jal somaCoordenadasClusters
     la s1, centroids
+    la s2, media_points
+    li s3, 0 # 1 se centroides mudarem, 0 caso contrario
+    li t0, 0 # iterador
+    lw t1, k
 
 calculaMedia:
-    lw t1, 0(s2) # Soma das coordenadas x
-    lw t2, 4(s2) # Soma das coordenadas y
-    lw t3, 8(s2) # Numero de pontos
-    beq t3, x0, novoCentroide
-    div t1, t1, t3
-    div t2, t2, t3
+    lw t2, 0(s2) # Soma das coordenadas x
+    lw t3, 4(s2) # Soma das coordenadas y
+    lw t4, 8(s2) # Numero de pontos
+    beq t4, x0, novoCentroide
+    div t2, t2, t4
+    div t3, t3, t4
     
 comparaCentroids:
-    lw t5, 0(s1)
+    lw t5, 0(s1) # coordenadas antigas do centroide
     lw t6, 4(s1)
-    bne t1, t5, centroidesAlterados
-    bne t2, t6, centroidesAlterados
+    bne t2, t5, centroidesAlterados
+    bne t3, t6, centroidesAlterados
     
 guardaCentroid:
-    sw t1, 0(s1)
-    sw t2, 4(s1)
+    sw t2, 0(s1)
+    sw t3, 4(s1)
     addi s1, s1, 8
     addi s2, s2, 12
     
-    # print
+    # print "Coordenadas centroide [indice]\n"
+    # print "[x], [y]\n"
     la a0, coordenadas_centroid
     li a7, 4
     ecall
@@ -307,25 +279,25 @@ guardaCentroid:
     li a7, 4
     ecall
     
-    addi t0, t0, 1
-    blt t0, t4, calculaMedia # se indice de centroide < k
-    mv a0, s4
+    addi t0, t0, 1 # iterador + 1
+    blt t0, t1, calculaMedia # se indice de centroide < k
+    
+    mv a0, s3
     jal limpaMediaPoints
-    lw s4, 16(sp)
     lw s3, 12(sp)
     lw s2, 8(sp)
     lw s1, 4(sp)
     lw ra, 0(sp)
-    addi sp, sp, 20
+    addi sp, sp, 16
     jr ra 
     
 centroidesAlterados:
-    li s4, 1
+    li s3, 1
     j guardaCentroid
     
 novoCentroide:
-    # print
-    la a0, nova_inicializacao
+    # print "Nova inicializacao do centroide [indice]\n"
+    la a0, nova_inicializacao 
     li a7, 4
     ecall
     mv a0, t0
@@ -336,9 +308,57 @@ novoCentroide:
     ecall
     
     jal initializeOneCentroide
-    mv t1, a0 # x
-    mv t2, a1 # y
+    mv t2, a0 # x
+    mv t3, a1 # y
     j comparaCentroids
+    
+    
+### somaCoordenadasClusters
+# Soma as coordenadas x dos pontos de um clusters (idem para y) 
+# e conta o numero de pontos no cluster. Guarda esses valores no 
+# vetor media_points, que eh do tipo [soma_x, soma_y, numero_pontos, soma_x, ...]
+# Argumentos: nenhum
+# Retorno: nenhum
+
+somaCoordenadasClusters: 
+    addi sp, sp, -12
+    sw s1, 0(sp)
+    sw s2, 4(sp)
+    sw s3, 8(sp)
+    
+    la s1, points # endereco do vetor de pontos
+    la s2, clusters # endereco do vetor de clusters
+    la s3, media_points
+    li t0, 0 # iterador
+    lw t1, n_points 
+    li t2, 12
+
+somaCoordenadas_loop:
+    lw t3, 0(s1) # x
+    lw t4, 4(s1) # y
+    lw t5, 0(s2) # ver a que cluster o ponto pertence
+    mul t5, t5, t2 # indice de cluster x 12
+    add t5, t5, s3 # endereco do media_points no cluster certo 
+    lw t6, 0(t5) # soma dos x do cluster
+    add t6, t6, t3
+    sw t6, 0(t5) 
+    lw t6, 4(t5) # soma dos y do cluster
+    add t6, t6, t4
+    sw t6, 4(t5)
+    lw t6, 8(t5) # numero de pontos do cluster
+    addi t6, t6, 1
+    sw t6, 8(t5)
+    addi s1, s1, 8 # points + 8
+    addi s2, s2, 4 # clusters + 4
+    addi t0, t0, 1 # iterador + 1
+    blt t0, t1, somaCoordenadas_loop # numero de iteracoes < n_points
+    
+    lw s1, 0(sp)
+    lw s2, 4(sp)
+    lw s3, 8(sp)
+    addi sp, sp, 12
+    jr ra
+
     
 ### limpaMediaPoints
 # Argumentos: nenhum
@@ -358,24 +378,18 @@ limpaMediaPoints_loop:
     bgt t1, x0, limpaMediaPoints_loop
     jr ra
 
+
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
 # Argumentos: nenhum
 # Retorno: nenhum
 
 mainSingleCluster:
-
     jal cleanScreen
-
     jal printClusters
-
     jal calculateCentroids
-
     jal printCentroids
-
-    #6. Termina
     jr ra
-
 
 
 ### manhattanDistance
@@ -460,6 +474,7 @@ updateMenorDistancia:
     mv s3, s4 # Guardar indice do centroide mais proximo
     j terminaNearestCluster
     
+    
 ### initializeCentroids
 # Argumentos: nenhum
 # Retorno: nenhum
@@ -472,15 +487,13 @@ initializeCentroids:
     la t1, centroids
     lw t2, k
     
+    # print "Centroides iniciais\n"
     la a0, centroides_iniciais
-    li a7, 4
-    ecall
-    la a0, nova_linha
     li a7, 4
     ecall
     
 initializeCentroids_loop:
-    # print
+    # print "Coordenadas centroide [indice]\n"
     la a0, coordenadas_centroid
     li a7, 4
     ecall
@@ -494,6 +507,20 @@ initializeCentroids_loop:
     jal initializeOneCentroide
     sw a0, 0(t1) 
     sw a1, 4(t1)
+    
+    # print "[x], [y]\n"
+    li a7, 1 
+    ecall
+    la a0, separador
+    li a7, 4
+    ecall
+    mv a0, a1
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
     addi t1, t1, 8
     addi t0, t0, 1
     blt t0, t2, initializeCentroids_loop
@@ -520,20 +547,6 @@ initializeOneCentroide:
     li a7, 30
     ecall
     andi a1, a0, 0x1F
-    
-    # print
-    mv a0, s2
-    li a7, 1
-    ecall
-    la a0, separador
-    li a7, 4
-    ecall
-    mv a0, a1
-    li a7, 1
-    ecall
-    la a0, nova_linha
-    li a7, 4
-    ecall
     
     mv a0, s2
     lw s1, 0(sp)
@@ -563,7 +576,7 @@ calculateClusters_loop:
     lw a1, 4(s0) # y
     addi s0, s0, 8
     jal nearestCluster
-    sw a0, 0(s1)
+    sw a0, 0(s1) # guarda indice de cluster
     addi s1, s1, 4
     addi s2, s2, -1
     bgt s2, x0, calculateClusters_loop
@@ -590,7 +603,20 @@ mainKMeans:
     jal initializeCentroids
     
 mainKMeansIteration:
-    beq s3, x0, terminaMainKMeans # Se centroides nao mudarem, terminar
+    # print "\n ITERACAO Nº [indice]\n"
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    la a0, iteracao_n
+    li a7, 4
+    ecall
+    mv a0, s1
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
     jal cleanScreen
     jal calculateClusters
     jal calculateCentroids # Calcular novo vetor de centroides
@@ -598,15 +624,18 @@ mainKMeansIteration:
     jal printClusters
     jal printCentroids
     addi s1, s1, 1
+    beq s3, x0, terminaMainKMeans # Se centroides nao mudarem, terminar
     blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
+    # print "Numero de iteracoes: [numero]\n"
     la a0, numero_iteracoes
     li a7, 4
     ecall
     li a7 1
     mv a0, s1
     ecall 
+    
     lw ra, 0(sp)
     addi sp, sp, 4
     jr ra
