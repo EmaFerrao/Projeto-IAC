@@ -263,7 +263,8 @@ somaCoordenadas:
     addi t2, t2, 8 # avancar para proximo ponto
     addi s1, s1, 4
     addi t0, t0, 1
-    blt t0, t1, somaCoordenadas # numero de iteracaoes < n_points
+    blt t0, t1, somaCoordenadas # numero de iteracoes < n_points
+    
     li t0, 0
     lw t4, k
     la s1, centroids
@@ -276,13 +277,13 @@ calculaMedia:
     div t1, t1, t3
     div t2, t2, t3
     
-voltaCalculaMedia:
+comparaCentroids:
     lw t5, 0(s1)
     lw t6, 4(s1)
     bne t1, t5, centroidesAlterados
     bne t2, t6, centroidesAlterados
     
-finalizaCalculaMedia:
+guardaCentroid:
     sw t1, 0(s1)
     sw t2, 4(s1)
     addi s1, s1, 8
@@ -292,19 +293,19 @@ finalizaCalculaMedia:
     la a0, coordenadas_centroid
     li a7, 4
     ecall
-    mv a0, t0
+    mv a0, t0 # indice do centroide
     li a7, 1
     ecall
     la a0, nova_linha
     li a7, 4
     ecall
-    mv a0, t1
+    mv a0, t1 # x
     li a7, 1
     ecall
     la a0, separador
     li a7, 4
     ecall
-    mv a0, t2
+    mv a0, t2 # y
     li a7, 1
     ecall
     la a0, nova_linha
@@ -312,7 +313,7 @@ finalizaCalculaMedia:
     ecall
     
     addi t0, t0, 1
-    blt t0, t4, calculaMedia 
+    blt t0, t4, calculaMedia # se indice de centroide < k
     mv a0, s4
     lw s4, 12(sp)
     lw s3, 8(sp)
@@ -323,13 +324,13 @@ finalizaCalculaMedia:
     
 centroidesAlterados:
     li s4, 1
-    j finalizaCalculaMedia
+    j guardaCentroid
     
 novoCentroide:
     jal initializeOneCentroide
     mv t1, a0 # x
     mv t2, a1 # y
-    j voltaCalculaMedia
+    j comparaCentroids
     
 
 ### mainSingleCluster
@@ -447,7 +448,7 @@ initializeCentroids:
     addi sp, sp, -4
     sw ra, 0(sp)
     
-    li t0, 0
+    li t0, 0 # indice do cluster
     la t1, centroids
     lw t2, k
     
@@ -575,6 +576,8 @@ mainKMeansIteration:
     beq s3, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
     jal cleanScreen
     jal calculateClusters
+    jal printClusters
+    jal printCentroids
     jal calculateCentroids # Calcular novo vetor de centroides
     mv s3, a0 
     jal printClusters
