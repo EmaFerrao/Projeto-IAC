@@ -36,12 +36,12 @@
 #points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
-n_points:    .word 23
-points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
+#n_points:    .word 23
+#points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-#n_points:    .word 30
-#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+n_points:    .word 30
+points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -50,8 +50,7 @@ points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7
 #k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-#centroids:   .word 0,0, 10,0, 0,10
-centroids:    .word 2, 8, 14, 0, 0, 24
+centroids:   .word 0,0, 10,0, 0,10
 k:           .word 3
 L:           .word 10
 
@@ -92,12 +91,6 @@ nova_linha:           .string "\n"
 
     # Descomentar na 2a parte do projeto:
     jal mainKMeans
-    #jal initializeCentroids
-    #jal cleanScreen
-    #jal calculateClusters
-    #jal calculateCentroids
-    #jal printClusters
-    #jal printCentroids
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -524,12 +517,9 @@ initializeOneCentroide:
     li a7, 30
     ecall
     andi s2, a0, 0x1F
-    #li s1, 32
-    #remu s2, a0, s1
     li a7, 30
     ecall
     andi a1, a0, 0x1F
-    #remu a1, a0, s1
     
     # print
     mv a0, s2
@@ -603,8 +593,6 @@ mainKMeansIteration:
     beq s3, x0, terminaMainKMeans # Se centroides nao mudarem, terminar
     jal cleanScreen
     jal calculateClusters
-    jal printClusters
-    jal printCentroids
     jal calculateCentroids # Calcular novo vetor de centroides
     mv s3, a0 
     jal printClusters
