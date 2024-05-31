@@ -66,6 +66,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 
 # Strings a imprimir no fim de cada passo
+inicio:               .string "------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 iteracao_n:           .string "ITERACAO Nº "
 limpa_matriz:         .string "Limpa matriz\n"
 print_cluster:        .string "Print cluster\n"
@@ -74,6 +75,7 @@ numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais\n"
 nova_inicializacao:   .string "Nova inicializacao do centroide "
 separador:            .string ", "
+hifen:                .string " - "
 nova_linha:           .string "\n"
 
 
@@ -263,16 +265,16 @@ guardaCentroid:
     mv a0, t0 # indice do centroide
     li a7, 1
     ecall
-    la a0, nova_linha
+    la a0, hifen
     li a7, 4
     ecall
-    mv a0, t1 # x
+    mv a0, t2 # x
     li a7, 1
     ecall
     la a0, separador
     li a7, 4
     ecall
-    mv a0, t2 # y
+    mv a0, t3 # y
     li a7, 1
     ecall
     la a0, nova_linha
@@ -368,11 +370,11 @@ limpaMediaPoints:
     la t0, media_points
     lw t1, k
     li t2, 3
-    mul t1, t1, t2
+    mul t1, t1, t2 # vetor tem 3 words por cluster, logo funcao faz 3 x k iteracoes
     li t2, 0
     
 limpaMediaPoints_loop:
-    sw t2, 0(t0)
+    sw t2, 0(t0) # guarda 0
     addi t0, t0, 4
     addi t1, t1, -1
     bgt t1, x0, limpaMediaPoints_loop
@@ -500,7 +502,7 @@ initializeCentroids_loop:
     mv a0, t0
     li a7, 1
     ecall
-    la a0, nova_linha
+    la a0, hifen
     li a7, 4
     ecall
     
@@ -595,6 +597,11 @@ calculateClusters_loop:
 # Retorno: nenhum
 
 mainKMeans:
+    # print "---------\n"
+    la a0, inicio
+    li a7, 4
+    ecall
+    
     li s1, 0 # iterador para comparar com L
     lw s2, L # iterador do numero de pontos
     li s3, 1 # verificar se nao houve alteracoes nos centroides
@@ -603,7 +610,7 @@ mainKMeans:
     jal initializeCentroids
     
 mainKMeansIteration:
-    # print "\n ITERACAO Nº [indice]\n"
+    # print "\nITERACAO Nº [indice]\n"
     la a0, nova_linha
     li a7, 4
     ecall
@@ -628,7 +635,10 @@ mainKMeansIteration:
     blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
-    # print "Numero de iteracoes: [numero]\n"
+    # print "\nNumero de iteracoes: [numero]"
+    la a0, nova_linha
+    li a7, 4
+    ecall
     la a0, numero_iteracoes
     li a7, 4
     ecall
@@ -639,4 +649,7 @@ terminaMainKMeans:
     lw ra, 0(sp)
     addi sp, sp, 4
     jr ra
+    
+    
+    
     
