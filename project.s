@@ -72,8 +72,8 @@ numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais\n"
 limpa_matriz:         .string "Limpa matriz\n"
 print_cluster:        .string "Print cluster\n"
-coordenadas_centroid: .string "Coordenadas centroide "
-nova_inicializacao:   .string "Nova inicializacao do centroide "
+coordenadas_centroid: .string "Coordenadas centroid "
+nova_inicializacao:   .string "Nova inicializacao do centroid "
 separador:            .string ", "
 hifen:                .string " - "
 nova_linha:           .string "\n"
@@ -218,7 +218,7 @@ executaPrintCentroids:
 
 
 ### calculateCentroids
-# Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
+# Calcula os k centroids, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
 # Argumentos: nenhum
 # Retorno: 
 # a0: 1 se centroids forem alterados, 0 caso contrario
@@ -233,7 +233,7 @@ calculateCentroids:
     jal somaCoordenadasClusters
     la s1, centroids
     la s2, media_points
-    li s3, 0 # 1 se centroides mudarem, 0 caso contrario
+    li s3, 0 # 1 se centroids mudarem, 0 caso contrario
     li t0, 0 # iterador
     lw t1, k
 
@@ -241,15 +241,15 @@ calculaMedia:
     lw t2, 0(s2) # Soma das coordenadas x
     lw t3, 4(s2) # Soma das coordenadas y
     lw t4, 8(s2) # Numero de pontos
-    beq t4, x0, novoCentroide
+    beq t4, x0, novoCentroid
     div t2, t2, t4
     div t3, t3, t4
     
 comparaCentroids:
-    lw t5, 0(s1) # coordenadas antigas do centroide
+    lw t5, 0(s1) # coordenadas antigas do centroid
     lw t6, 4(s1)
-    bne t2, t5, centroidesAlterados
-    bne t3, t6, centroidesAlterados
+    bne t2, t5, centroidsAlterados
+    bne t3, t6, centroidsAlterados
     
 guardaCentroid:
     sw t2, 0(s1)
@@ -293,11 +293,11 @@ guardaCentroid:
     addi sp, sp, 16
     jr ra 
     
-centroidesAlterados:
+centroidsAlterados:
     li s3, 1
     j guardaCentroid
     
-novoCentroide:
+novoCentroid:
     # print "Nova inicializacao do centroid [indice]\n"
     la a0, nova_inicializacao 
     li a7, 4
@@ -480,7 +480,7 @@ terminaNearestCluster:
     
 updateMenorDistancia:
     mv s2, a0 # guardar menor distancia
-    mv s3, s4 # guardar indice do centroide mais proximo
+    mv s3, s4 # guardar indice do centroid mais proximo
     j terminaNearestCluster
     
     
@@ -496,8 +496,8 @@ initializeCentroids:
     la t1, centroids
     lw t2, k
     
-    # print "Centroides iniciais\n"
-    la a0, centroides_iniciais
+    # print "Centroids iniciais\n"
+    la a0, centroids_iniciais
     li a7, 4
     ecall
     
