@@ -133,6 +133,8 @@ cleanScreen:
     li t0, 0 # coordenada x
     li t2, LED_MATRIX_WIDTH
     li t3, LED_MATRIX_HEIGHT
+    li a2, white # cor de fundo
+    
     addi sp, sp, -4
     sw ra, 0(sp)
     
@@ -142,11 +144,9 @@ itera_x:
 itera_y:
     mv a0, t0
     mv a1, t1
-    li a2, white # cor de fundo
     jal printPoint 
     addi t1, t1, 1
     blt t1, t3, itera_y
-    
     addi t0, t0, 1
     blt t0, t2, itera_x
     
@@ -172,12 +172,12 @@ printClusters:
     addi sp, sp, -4
     sw ra, 0(sp)
 
-itera:
+printClusters_loop:
     lw a0, 0(t2) # x
     lw a1, 4(t2) # y
     addi t2, t2, 8
     
-    lw t0, 0(t3) # indice cluster
+    lw t0, 0(t3) # indice cluster do ponto
     slli t0, t0, 2
     add t0, t0, t1 # endereco da cor
     lw a2, 0(t0)
@@ -185,7 +185,7 @@ itera:
     
     jal printPoint 
     addi t4, t4, -1
-    bgt t4, x0, itera
+    bgt t4, x0, printClusters_loop
     
     lw ra, 0(sp)
     addi sp, sp, 4
@@ -273,7 +273,7 @@ calculaMedia:
     lw t1, 0(s2) # Soma das coordenadas x
     lw t2, 4(s2) # Soma das coordenadas y
     lw t3, 8(s2) # Numero de pontos
-    beq t3, x0, novoCentroide
+    #beq t3, x0, novoCentroide
     div t1, t1, t3
     div t2, t2, t3
     
@@ -516,13 +516,16 @@ mainKMeansIteration:
     jal cleanScreen
     jal calculateClusters
     jal calculateCentroids # Calcular novo vetor de centroides
-    mv s3, a0
+    mv s3, a0 
     jal printClusters
     jal printCentroids
     addi s1, s1, 1
     blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
+    li a7 1
+    mv a0, s1
+    ecall 
     lw ra, 0(sp)
     addi sp, sp, 4
     jr ra
