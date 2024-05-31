@@ -79,6 +79,7 @@ print_cluster:        .string "Print cluster\n"
 coordenadas_centroid: .string "Coordenadas centroide "
 numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais"
+nova_inicializacao:   .string "Nova inicializacao do cluster "
 separador:            .string ", "
 nova_linha:           .string "\n"
 
@@ -316,6 +317,7 @@ guardaCentroid:
     addi t0, t0, 1
     blt t0, t4, calculaMedia # se indice de centroide < k
     mv a0, s4
+    jal limpaMediaPoints
     lw s4, 16(sp)
     lw s3, 12(sp)
     lw s2, 8(sp)
@@ -329,11 +331,39 @@ centroidesAlterados:
     j guardaCentroid
     
 novoCentroide:
+    # print
+    la a0, nova_inicializacao
+    li a7, 4
+    ecall
+    mv a0, t0
+    li a7, 1
+    ecall
+    la a0, nova_linha
+    li a7, 4
+    ecall
+    
     jal initializeOneCentroide
     mv t1, a0 # x
     mv t2, a1 # y
     j comparaCentroids
     
+### limpaMediaPoints
+# Argumentos: nenhum
+# Retorno: nenhum
+
+limpaMediaPoints:
+    la t0, media_points
+    lw t1, k
+    li t2, 3
+    mul t1, t1, t2
+    li t2, 0
+    
+limpaMediaPoints_loop:
+    sw t2, 0(t0)
+    addi t0, t0, 4
+    addi t1, t1, -1
+    bgt t1, x0, limpaMediaPoints_loop
+    jr ra
 
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
@@ -403,23 +433,20 @@ nearestCluster:
     lw s1, k 
     li s4, 0 # Iterador
     
-    # Inicializar a width + height
     li s2, LED_MATRIX_WIDTH
     li s3, LED_MATRIX_HEIGHT
     add s2, s2, s3  # Guarda a maior distancia possivel
     
-    # Inicializar o indice da menor distancia
-    li s3, 0
-    mv t6, a0 # guardar x
+    li s3, 0 # indice do cluster mais proximo
+    mv t6, a0 # guardar x do ponto
     
 calculaManhattanDistance:
     mv a0, t6
     lw a2, 0(s0) # x do centroide
     lw a3, 4(s0) # y do centroide
     addi s0, s0, 8 # Passa para o proximo centroide
-    jal manhattanDistance # Calcular manhattan distance
+    jal manhattanDistance 
     
-    ### Calcular menor distancia ###
     blt a0, s2, updateMenorDistancia
         
 terminaNearestCluster:
@@ -436,10 +463,8 @@ terminaNearestCluster:
     jr ra
     
 updateMenorDistancia:
-    # Guardar menor distancia
-    mv s2, a0
-    # Guardar indice do centroide mais proximo
-    mv s3, s4
+    mv s2, a0 # Guardar menor distancia
+    mv s3, s4 # Guardar indice do centroide mais proximo
     j terminaNearestCluster
     
 ### initializeCentroids
@@ -575,7 +600,7 @@ mainKMeans:
     jal initializeCentroids
     
 mainKMeansIteration:
-    beq s3, x0, terminaMainKMeans # Se nao fizemos alteracoes, terminar
+    beq s3, x0, terminaMainKMeans # Se centroides nao mudarem, terminar
     jal cleanScreen
     jal calculateClusters
     jal printClusters
@@ -597,9 +622,4 @@ terminaMainKMeans:
     lw ra, 0(sp)
     addi sp, sp, 4
     jr ra
-    
-    # 1. Escolher k pontos random para ser centroides (feito)
-    # 2. Para cada ponto, ver qual centroide esta mais perto e agrupar o ponto nesse cluster
-    # 3. Calcular novos centroides de acordo com os clusters obtidos
-    # 4. Repetir o algoritmo ate nenhum ponto mudar de cluster
     
