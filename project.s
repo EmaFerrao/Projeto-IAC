@@ -67,9 +67,9 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 # Strings a imprimir no fim de cada passo
 inicio:               .string "------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-iteracao_n:           .string "ITERACAO Nº "
+iteracao_n:           .string "ITERACAO Nï¿½ "
 numero_iteracoes:     .string "Numero de iteracoes: "
-centroides_iniciais:  .string "Centroides iniciais\n"
+centroids_iniciais:   .string "Centroids iniciais\n"
 limpa_matriz:         .string "Limpa matriz\n"
 print_cluster:        .string "Print cluster\n"
 coordenadas_centroid: .string "Coordenadas do centroid "
@@ -143,7 +143,7 @@ itera_y:
     addi t0, t0, 1
     blt t0, t2, itera_x # x < LED_MATRIX_WIDTH
     
-    # print "Limpa matriz"
+    # print "Limpa matriz\n"
     la a0, limpa_matriz
     li a7, 4
     ecall
@@ -182,7 +182,7 @@ printClusters_loop:
     addi t4, t4, -1
     bgt t4, x0, printClusters_loop
     
-    # print "Print cluster"
+    # print "Print cluster\n"
     la a0, print_cluster
     li a7, 4
     ecall
@@ -199,7 +199,7 @@ printClusters_loop:
 
 printCentroids:
     lw t0, k # contar numero de iteracoes
-    la t1, centroids # endereco do vetor de centroids
+    la t1, centroids 
     li a2, black
     addi sp, sp, -4
     sw ra, 0(sp)
@@ -263,7 +263,7 @@ guardaCentroid:
     mv a2, t3
     jal printCoordenadasCentroids
     
-    addi t0, t0, 1 # iterador + 1
+    addi t0, t0, 1 # incrementa iterador
     blt t0, t1, calculaMedia # se indice de centroide < k
     
     mv a0, s3
@@ -302,6 +302,7 @@ novoCentroid:
 # a0: indice do centroid
 # a1: x do centroid
 # a2: y do centroid
+
 printCoordenadasCentroids:
     # print "Coordenadas do centroid [indice]\n"
     # print "[x], [y]\n"
@@ -517,7 +518,7 @@ initializeCentroids:
     ecall
     
 initializeCentroids_loop:
-    # print "Coordenadas centroide [indice] - "
+    # print "Coordenadas do centroide [indice] - "
     la a0, coordenadas_centroid
     li a7, 4
     ecall
@@ -632,7 +633,7 @@ mainKMeans:
     jal initializeCentroids
     
 mainKMeansIteration:
-    # print "\nITERACAO Nº [indice]\n"
+    # print "\nITERACAO Nï¿½ [indice]\n"
     la a0, nova_linha
     li a7, 4
     ecall
