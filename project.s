@@ -40,8 +40,8 @@
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-#n_points:    .word 30
-#points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+n_points:    .word 30
+points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
 
 
 
@@ -67,7 +67,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 # Strings a imprimir no fim de cada passo
 inicio:               .string "------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-iteracao_n:           .string "ITERACAO Nº "
+iteracao_n:           .string "ITERACAO Nï¿½ "
 numero_iteracoes:     .string "Numero de iteracoes: "
 centroides_iniciais:  .string "Centroides iniciais\n"
 limpa_matriz:         .string "Limpa matriz\n"
@@ -221,7 +221,7 @@ executaPrintCentroids:
 # Calcula os k centroides, a partir da distribuicao atual de pontos associados a cada agrupamento (cluster)
 # Argumentos: nenhum
 # Retorno: 
-# a0: 1 se centroides forem alterados, 0 caso contrario
+# a0: 1 se centroids forem alterados, 0 caso contrario
 
 calculateCentroids:
     addi sp, sp, -16
@@ -502,7 +502,7 @@ initializeCentroids:
     ecall
     
 initializeCentroids_loop:
-    # print "Coordenadas centroide [indice]\n"
+    # print "Coordenadas centroide [indice] - "
     la a0, coordenadas_centroid
     li a7, 4
     ecall
@@ -530,8 +530,8 @@ initializeCentroids_loop:
     li a7, 4
     ecall
     
-    addi t1, t1, 8
-    addi t0, t0, 1
+    addi t1, t1, 8 # passar para proximo centroid
+    addi t0, t0, 1 # incrementar indice do cluster
     blt t0, t2, initializeCentroids_loop
     
     lw ra, 0(sp)
@@ -552,7 +552,7 @@ initializeOneCentroide:
     
     li a7, 30
     ecall
-    andi s2, a0, 0x1F
+    andi s2, a0, 0x1F # andi com numero com 5 bits a 1, logo resultado e' um numero de 0 a 31
     li a7, 30
     ecall
     andi a1, a0, 0x1F
@@ -561,11 +561,11 @@ initializeOneCentroide:
     lw s1, 0(sp)
     lw s2, 4(sp)
     addi sp, sp, 8
-    
     jr ra
     
 
 ### calculateClusters
+# Calcula o cluster de cada ponto e guarda no vetor clusters
 # Argumentos: nenhum
 # Retorno: nenhum
 
@@ -583,10 +583,10 @@ calculateClusters:
 calculateClusters_loop:
     lw a0, 0(s0) # x
     lw a1, 4(s0) # y
-    addi s0, s0, 8
+    addi s0, s0, 8 # passar para o proximo ponto
     jal nearestCluster
     sw a0, 0(s1) # guarda indice de cluster
-    addi s1, s1, 4
+    addi s1, s1, 4 # passar para o cluster associado ao ponto seguinte
     addi s2, s2, -1
     bgt s2, x0, calculateClusters_loop
     
@@ -610,14 +610,14 @@ mainKMeans:
     ecall
     
     li s1, 0 # iterador para comparar com L
-    lw s2, L # iterador do numero de pontos
+    lw s2, L 
     li s3, 1 # verificar se nao houve alteracoes nos centroides
     addi sp, sp, -4
     sw ra, 0(sp)
     jal initializeCentroids
     
 mainKMeansIteration:
-    # print "\nITERACAO Nº [indice]\n"
+    # print "\nITERACAO NÂº [indice]\n"
     la a0, nova_linha
     li a7, 4
     ecall
@@ -633,12 +633,12 @@ mainKMeansIteration:
     
     jal cleanScreen
     jal calculateClusters
-    jal calculateCentroids # Calcular novo vetor de centroides
-    mv s3, a0 
+    jal calculateCentroids # devolve 1 se centroids forem alterados, 0 caso contrario
+    mv s3, a0  # guardar retorno do calculateCentroids
     jal printClusters
     jal printCentroids
-    addi s1, s1, 1
-    beq s3, x0, terminaMainKMeans # Se centroides nao mudarem, terminar
+    addi s1, s1, 1 # incrementa iterador
+    beq s3, x0, terminaMainKMeans # se centroids nao mudarem, terminar
     blt s1, s2, mainKMeansIteration
     
 terminaMainKMeans:
